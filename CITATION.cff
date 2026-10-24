@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "Please cite this software and cite upstream datasets separately."
+title: "Changchun Heat-Water Resilience: Compound Screening Workflow"
+type: software
+authors:
+  - name: Rin
+version: 0.1.0
+license: MIT
+abstract: "A reproducible workflow for relative heat-water screening, impervious expansion and building-function exposure."

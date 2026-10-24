@@ -1,0 +1,26 @@
+{
+  "project_root": "..",
+  "inputs": {
+    "heat_early": "data/external/LST_2013_2015_30m.tif",
+    "heat_late": "data/external/LST_2021_2023_30m.tif",
+    "transition": "data/external/transition_2013_2022_30m.tif",
+    "water_risk": "data/external/waterlogging_proxy_30m.tif",
+    "building_functions": "data/external/building_function_4ring.gpkg"
+  },
+  "grid": {
+    "resolution_m": 30,
+    "epsg": 32651
+  },
+  "parameters": {
+    "heat_weight": 0.55,
+    "water_weight": 0.45,
+    "zone_threshold": 0.67,
+    "compound_threshold": 0.67,
+    "exposure_threshold": 0.6
+  },
+  "outputs": {
+    "output_dir": "outputs",
+    "derived_dir": "data/derived",
+    "figure_dir": "figures"
+  }
+}

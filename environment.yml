@@ -1,0 +1,11 @@
+name: heatwater
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - numpy>=1.24,<3
+  - gdal>=3.8,<4
+  - matplotlib>=3.7,<4
+  - pip
+  - pip:
+      - -e .
