@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="description" content="热水共治：城市热涝复合风险与建筑功能暴露的交互式遥感探索。">
+<title>热水共治 · 城市韧性观测台</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23226a56'/%3E%3Ctext x='5' y='25' font-size='29' fill='white'%3E≈%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+<script defer src="data/demo.js"></script>
+<!-- LOCAL_DATA_SLOT -->
+<script defer src="core.js"></script>
+<script defer src="app.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#explorer">跳到地图探索</a>
+<header class="site-header">
+  <a class="brand" href="#top" aria-label="热水共治首页"><span class="brand-icon" aria-hidden="true">≈</span><span>热水共治<small>HEAT / WATER / RESILIENCE</small></span></a>
+  <nav aria-label="主导航"><a class="active" href="#explorer">空间探索</a><a href="#lab">参数实验</a><a href="#method">研究方法</a></nav>
+  <span class="header-status"><i></i> 本地研究预览 <span>v0.1.0</span></span>
+</header>
+<main id="top">
+<section class="intro">
+  <div><p class="eyebrow"><span></span> 城市气候适应 · 遥感应用</p>
+  <h1>看见城市的热，<br>也看见水的去处<span>。</span></h1>
+  <p class="intro-copy">把两期夏季地表温度、水涝空间代理和建筑功能放在同一张地图上，<br class="wide-only">为蓝绿空间更新，找到值得优先核查的位置。</p>
+  <a class="text-link" href="#explorer">开始探索 <span aria-hidden="true">↘</span></a></div>
+  <div class="intro-aside"><span class="vertical-label">A SPATIAL PERSPECTIVE</span><div class="orbital" aria-hidden="true"><div></div><span>H</span><span>W</span><b>+</b></div><p>热环境 × 水涝代理 × 建筑暴露<br><strong>一个空间框架，三种观察视角</strong></p></div>
+</section>
+
+<section class="data-strip" aria-label="数据状态">
+  <div class="dataset-control"><label for="dataset">当前案例</label><select id="dataset"></select></div>
+  <div class="dataset-caption"><span class="dataset-tag" id="dataset-tag"></span><span id="dataset-description"></span></div>
+  <span class="resolution-tag">30 m 网格 <span> / </span> UTM 51N</span>
+</section>
+
+<section class="metrics" aria-label="空间统计" aria-live="polite">
+  <article><span class="metric-label"><i class="dot neutral"></i>有效分析范围</span><p><strong id="metric-area">—</strong><span>km²</span></p><small id="metric-pixels">读取数据中</small></article>
+  <article><span class="metric-label"><i class="dot purple"></i>热涝分量双高</span><p><strong id="metric-both">—</strong><span>km²</span></p><small id="metric-both-share">分量均达到当前阈值</small></article>
+  <article><span class="metric-label"><i class="dot orange"></i>复合高分区域</span><p><strong id="metric-score">—</strong><span>km²</span></p><small>加权复合分数 ≥ 当前阈值</small></article>
+  <article><span class="metric-label"><i class="dot green"></i>高分 · 高建筑暴露</span><p><strong id="metric-exposure">—</strong><span>km²</span></p><small>复合高分且建筑功能暴露 ≥ 0.60</small></article>
+</section>
+
+<section id="explorer" class="explorer section-anchor">
+  <div class="section-head"><div><p class="eyebrow">01 / SPATIAL EXPLORER</p><h2>把问题放回空间里。</h2></div><p>选择图层，移动地图；悬停像元，查看局部信息。</p></div>
+  <div class="map-shell">
+    <aside class="layers-panel">
+      <p class="panel-caption">观察图层 <span>LAYERS</span></p>
+      <div class="layer-buttons" role="group" aria-label="地图图层">
+        <button data-layer="zones" class="selected" aria-pressed="true"><span class="layer-symbol purple">◫</span><span>热涝治理分区<small>COMPONENT QUADRANTS</small></span><b>↗</b></button>
+        <button data-layer="heat" aria-pressed="false"><span class="layer-symbol orange">☀</span><span>持续热分数<small>RELATIVE SURFACE HEAT</small></span><b>↗</b></button>
+        <button data-layer="water" aria-pressed="false"><span class="layer-symbol blue">≈</span><span>水涝代理分数<small>WATER SCREENING PROXY</small></span><b>↗</b></button>
+        <button data-layer="compound" aria-pressed="false"><span class="layer-symbol green">⊕</span><span>加权复合分数<small>WEIGHTED COMPOUND SCORE</small></span><b>↗</b></button>
+        <button data-layer="exposure" aria-pressed="false"><span class="layer-symbol purple">⌂</span><span>建筑功能暴露<small>FUNCTIONAL EXPOSURE</small></span><b>↗</b></button>
+        <button data-layer="expansion" aria-pressed="false"><span class="layer-symbol blue">▧</span><span>新增不透水面<small>EXPANSION PRIORITY</small></span><b>↗</b></button>
+      </div>
+      <div class="layer-note"><span class="tiny-label">HOW TO READ</span><h3 id="layer-title">热涝治理分区</h3><p id="layer-note"></p></div>
+      <button id="download-map" class="outline-button">↓ 导出当前地图 PNG</button>
+    </aside>
+    <div class="map-area">
+      <div class="map-topline"><span id="map-caption">正在加载地图</span><span id="map-extent"></span></div>
+      <div class="canvas-wrap"><canvas id="map" tabindex="0" aria-label="风险分布地图；加减键缩放，方向键移动，零键复位"></canvas><div class="map-controls" role="group" aria-label="地图缩放"><button id="zoom-in" aria-label="放大">+</button><button id="zoom-out" aria-label="缩小">−</button><button id="zoom-reset" aria-label="复位地图">⌂</button></div><div class="north" aria-hidden="true">N<span>↑</span></div><div class="pixel-inspector" id="pixel-inspector" aria-live="off">悬停有效像元，查看热 / 水 / 暴露分数</div></div>
+      <div class="map-bottomline"><div id="legend" class="legend"></div><span class="map-hint">滚轮缩放 · 拖动平移</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="lab" class="lab section-anchor">
+  <div class="section-head"><div><p class="eyebrow">02 / PARAMETER STUDIO</p><h2>结论，对选择有多敏感？</h2></div><button id="reset-parameters" class="text-button">恢复基线 ↺</button></div>
+  <div class="lab-grid">
+    <div class="controls-card">
+      <div class="control-head"><label for="heat-weight">热分量权重</label><output for="heat-weight" id="weight-output">55%</output></div>
+      <input id="heat-weight" type="range" min="30" max="70" step="5" value="55">
+      <div class="range-labels"><span>热 30% / 水 70%</span><span>热 70% / 水 30%</span></div>
+      <div class="weight-equation"><span><i class="dot orange"></i>热 <b id="weight-heat">0.55</b></span><b>+</b><span><i class="dot blue"></i>水 <b id="weight-water">0.45</b></span><b>=</b><span>复合分数</span></div>
+      <div class="control-head threshold-head"><label for="threshold">高值判定阈值</label><output for="threshold" id="threshold-output">0.67</output></div>
+      <input id="threshold" type="range" min="50" max="80" step="1" value="67">
+      <div class="range-labels"><span>0.50 · 更宽的筛查范围</span><span>0.80 · 更集中的高值区</span></div>
+      <p class="control-note">权重影响连续复合分数；四类治理分区由热、水各自的阈值决定。此处同步调整分量与复合高分阈值，用于探索。</p>
+    </div>
+    <div class="zone-card"><div class="card-head"><h3>四类分区的面积构成</h3><span>当前参数 · 动态更新</span></div><div id="stacked-bar" class="stacked-bar" role="img"></div><div id="zone-rows" class="zone-rows"></div><button id="download-csv" class="text-button">↓ 下载当前分区统计 CSV</button></div>
+    <div class="insight-card"><span class="tiny-label">READING THE RESULT</span><h3>优先核查，<br>从交叠处开始。</h3><p id="insight-text"></p><div class="insight-divider"></div><p class="small">浏览器中的参数探索不会改写 Python 成果。正式分析应使用配置文件重跑处理链，并核验数据清单。</p><button id="download-settings">导出探索参数 JSON <span>↗</span></button></div>
+  </div>
+</section>
+
+<section id="method" class="method section-anchor">
+  <div class="section-head"><div><p class="eyebrow">03 / BEHIND THE MAP</p><h2>一张地图背后的处理链。</h2></div><p>数据可追溯，参数可解释，结果可核验。</p></div>
+  <div class="flow"><article><b>01</b><h3>统一网格</h3><p>核对两期 LST、转换网格与单位，将水涝代理对齐到 30 m 参考网格。</p></article><article><b>02</b><h3>相对归一化</h3><p>共同有效区内取 P5–P95，将两期热环境与水涝代理转为 0–1 相对分数。</p></article><article><b>03</b><h3>复合与暴露</h3><p>组合热水分数，叠加新增不透水面与住宅、教育、医疗、公共服务功能。</p></article><article><b>04</b><h3>检验与交付</h3><p>输出 GeoTIFF、统计表和图件，记录参数与 SHA-256，分析参数敏感性。</p></article></div>
+  <details class="method-detail"><summary>查看公式与数据口径 <span>+</span></summary><div class="detail-body"><p><code>Heat = (NormalizedLST₁ + NormalizedLST₂) / 2</code><br><code>Compound = w × Heat + (1 − w) × Water</code><br><code>Exposure = clip(0.60R + 0.90E + 1.00H + 0.70P, 0, 1)</code></p><p>建筑功能以接触像元的多边形标记存在；不同功能叠加后截断至 1。新增不透水面对应原转换栅格编码 2。两期 LST 表达相对空间格局，不代表逐年变暖趋势。</p><p id="source-detail"></p></div></details>
+  <div class="scope-note"><span>研究边界</span><p>水涝代理未用独立积水观测校准，不替代工程内涝预报。地表温度不等于气温；建筑功能暴露不等于人口数量。此页面用于研究展示与候选区域筛查。</p></div>
+</section>
+<div id="error-message" role="alert" hidden></div>
+</main>
+<footer><span class="footer-brand">热水共治<span> / </span>城市韧性观测台</span><span>Python / GDAL / NumPy · Offline HTML explorer</span><a href="#top">回到顶部 ↑</a></footer>
+<noscript><p>请启用 JavaScript 以查看地图；本页面可在本地离线运行，无需账号。</p></noscript>
+</body></html>

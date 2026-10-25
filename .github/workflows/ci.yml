@@ -3,6 +3,15 @@ on: [push, pull_request]
 permissions:
   contents: read
 jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node --test website/tests/core.test.cjs website/tests/dataset.test.cjs
+      - run: node --check website/app.js
   unit:
     runs-on: ubuntu-latest
     strategy:
@@ -31,3 +40,4 @@ jobs:
       - run: /usr/bin/python3 -m scripts.synthetic_case --directory demo
       - run: /usr/bin/python3 -m scripts.run_pipeline --config demo/config.json
       - run: /usr/bin/python3 -m scripts.validate_outputs --config demo/config.json
+      - run: /usr/bin/python3 -m scripts.export_web_data --config demo/config.json

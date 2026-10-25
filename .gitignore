@@ -23,3 +23,5 @@ docs/superpowers/
 docs/implementation-ledger.md
 docs/processing_flow.md
 docs/submission_draft.md
+website/local.html
+website/data/local.js
