@@ -6,7 +6,10 @@ const fs=require("node:fs");
 (async()=>{
  const browser=await chromium.launch({headless:true,...(process.platform==="win32"?{channel:"msedge"}:{})});
  try{
-  const page=await browser.newPage({viewport:{width:1440,height:1050}});
+  const singleFile=process.env.HEATWATER_SINGLE_FILE==="1";
+  const page=await browser.newPage({viewport:{width:1440,height:1050},offline:singleFile});
+  const requests=[];
+  page.on("request",request=>requests.push(request.url()));
   const errors=[];
   page.on("pageerror",e=>errors.push(e.message));
   const url=process.env.HEATWATER_URL||"http://127.0.0.1:8765/local.html";
@@ -55,9 +58,14 @@ const fs=require("node:fs");
    assert.ok((await page.locator("#dataset-tag").textContent()).includes("模拟"));
    assert.equal(await page.locator("#metric-area").textContent(),"1.68");
   }
-  await page.goto(new URL("index.html",url).href,{waitUntil:"networkidle"});
-  assert.ok((await page.locator("#dataset-tag").textContent()).includes("模拟"));
+  if(!singleFile){
+   await page.goto(new URL("index.html",url).href,{waitUntil:"networkidle"});
+   assert.ok((await page.locator("#dataset-tag").textContent()).includes("模拟"));
+  }else{
+   assert.equal(requests.filter(url=>url.startsWith("http")).length,0);
+   assert.equal(requests.filter(url=>url.startsWith("file:")).length,1);
+  }
   assert.deepEqual(errors,[]);
-  console.log(JSON.stringify({area,initialBoth,initialScore,errors,desktop:true,mobile:true,sliders:true,exports:true,publicDemo:true}));
+  console.log(JSON.stringify({area,initialBoth,initialScore,errors,desktop:true,mobile:true,sliders:true,exports:true,singleFile,offline:singleFile}));
  } finally {await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -2,6 +2,21 @@
 
 本目录是无构建步骤、无 CDN、可离线打开的静态网页。
 
+## 单文件分享
+
+把页面、样式、脚本和全部地图数据嵌入一个 HTML：
+
+```sh
+python -m scripts.build_single_html --entry website/local.html --output artifacts/share/changchun.html
+```
+
+将生成的 HTML 单独发送给朋友即可，不需要附带目录或开启服务器。
+对方先保存文件，再用 Edge、Chrome 或其他现代浏览器打开。
+公开模拟案例可将入口改为 website/index.html。
+真实成果单文件包含真实栅格的浏览器数据；它属于本地分享成果，
+不会自动纳入公开 Git 仓库。部分聊天软件的内置预览不执行 JavaScript，
+这种情况下请下载后在系统浏览器中打开。
+
 ## 预览
 
 直接在浏览器中打开 index.html，即为公开模拟案例。或者从项目根目录运行：
