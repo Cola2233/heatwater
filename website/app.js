@@ -29,6 +29,7 @@ function loadDataset(id){
  $("dataset-tag").textContent=data.synthetic?"模拟案例 · 非观测":"真实成果 · 仅本地";
  $("dataset-tag").classList.toggle("synthetic",data.synthetic);
  $("dataset-description").textContent=data.synthetic?"自动生成的模拟栅格与建筑；演示算法及交互。":"本地长春成果；未上传在线服务。";
+ if($("hero-case"))$("hero-case").textContent=data.synthetic?"模拟案例 / 非观测":"长春四环 / 本地成果";
  $("map-caption").textContent=data.title+" / "+descriptions[state.layer][0];
  $("map-extent").textContent=data.width+" × "+data.height+" px · EPSG:"+data.epsg;
  $("source-detail").textContent="当前案例："+data.title+"；"+
@@ -112,7 +113,7 @@ function draw(){
  const rect=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1,W=rect.width,H=rect.height;
  if(W<1||H<1)return;
  canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
- ctx.fillStyle="#eef1eb";ctx.fillRect(0,0,W,H);ctx.strokeStyle="#dde4d7";ctx.lineWidth=.5;
+ ctx.fillStyle="#f4f4f4";ctx.fillRect(0,0,W,H);ctx.strokeStyle="#e0e0e0";ctx.lineWidth=.5;
  for(let x=0;x<W;x+=36){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
  for(let y=0;y<H;y+=36){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
  const scale=Math.min((W-70)/data.width,(H-75)/data.height)*state.zoom;
@@ -120,16 +121,16 @@ function draw(){
  transform={x,y,scale,W,H};ctx.imageSmoothingEnabled=false;
  ctx.drawImage(raster,x,y,data.width*scale,data.height*scale);
  // This is a pixel-grid extent, not a cadastral or administrative boundary.
- ctx.strokeStyle="#9eb29e";ctx.lineWidth=.7;ctx.strokeRect(x,y,data.width*scale,data.height*scale);
- ctx.font="8px system-ui";ctx.fillStyle="#84977e";
+ ctx.strokeStyle="#8d8d8d";ctx.lineWidth=.7;ctx.strokeRect(x,y,data.width*scale,data.height*scale);
+ ctx.font="10px system-ui";ctx.fillStyle="#525252";
  ctx.fillText("E "+Math.round(data.geotransform[0]).toLocaleString("en-US")+" m",Math.max(10,x),Math.max(12,y-8));
  const desired=data.resolution*90/scale,power=10**Math.floor(Math.log10(desired));
  const distance=[1,2,5,10].map(n=>n*power).find(n=>n>=desired)||power*10;
  const length=distance/data.resolution*scale,barX=W-25-length,barY=H-27;
  ctx.fillStyle="#fff";ctx.fillRect(barX-7,barY-19,length+14,30);
- ctx.fillStyle="#506d58";ctx.fillRect(barX,barY,length,2);
- ctx.font="9px system-ui";ctx.fillText(distance>=1000?(distance/1000)+" km":distance+" m",barX,barY-5);
- if(data.synthetic){ctx.fillStyle="#6d785f";ctx.font="8px system-ui";ctx.fillText("SYNTHETIC · 非观测",12,H-49);}
+ ctx.fillStyle="#161616";ctx.fillRect(barX,barY,length,2);
+ ctx.font="11px system-ui";ctx.fillText(distance>=1000?(distance/1000)+" km":distance+" m",barX,barY-5);
+ if(data.synthetic){ctx.fillStyle="#525252";ctx.font="10px system-ui";ctx.fillText("SYNTHETIC · 非观测",12,H-78);}
 }
 function scheduleCompute(){cancelAnimationFrame(frame);frame=requestAnimationFrame(compute);}
 function zoom(factor){state.zoom=Math.max(.6,Math.min(8,state.zoom*factor));draw();}
@@ -158,6 +159,24 @@ function initialize(){
  if(!window.HeatwaterCore||!Object.keys(datasets).length)throw new Error("未找到网页数据，请先执行 export_web_data。");
  for(const[id,payload]of Object.entries(datasets)){const option=document.createElement("option");option.value=id;option.textContent=payload.meta.title+(payload.meta.synthetic?" · 模拟":" · 本地真实成果");$("dataset").append(option);}
  $("dataset").value=datasets.changchun?"changchun":"demo";loadDataset($("dataset").value);
+ const navToggle=$("nav-toggle"),navigation=$("main-nav");
+ if(navToggle&&navigation){
+   function closeNav(){
+     navigation.classList.remove("open");navToggle.setAttribute("aria-expanded","false");
+     navToggle.setAttribute("aria-label","展开导航");
+   }
+   navToggle.addEventListener("click",()=>{
+     const open=navigation.classList.toggle("open");
+     navToggle.setAttribute("aria-expanded",String(open));
+     navToggle.setAttribute("aria-label",open?"收起导航":"展开导航");
+   });
+   navigation.querySelectorAll("a").forEach(link=>link.addEventListener("click",()=>{
+     navigation.querySelectorAll("a").forEach(a=>a.classList.toggle("active",a===link));
+     closeNav();
+   }));
+   document.addEventListener("keydown",e=>{if(e.key==="Escape")closeNav();});
+   window.matchMedia("(min-width:673px)").addEventListener("change",closeNav);
+ }
  $("dataset").addEventListener("change",e=>loadDataset(e.target.value));
  document.querySelectorAll("[data-layer]").forEach(button=>button.addEventListener("click",()=>{
    state.layer=button.dataset.layer;
@@ -186,8 +205,8 @@ function initialize(){
  $("download-settings").onclick=()=>download(data.id+"-exploration.json",JSON.stringify({dataset:data.id,synthetic:data.synthetic,exploration_only:true,parameters:{heat_weight:state.heatWeight,water_weight:1-state.heatWeight,zone_threshold:state.threshold,compound_threshold:state.threshold,exposure_threshold:.6},source_hashes:data.source_hashes},null,2),"application/json");
  $("download-map").onclick=()=>{
    const out=document.createElement("canvas");out.width=canvas.width;out.height=canvas.height+130;
-   const c=out.getContext("2d");c.fillStyle="#f6f7f2";c.fillRect(0,0,out.width,out.height);c.drawImage(canvas,0,70);
-   c.fillStyle="#173b38";c.font="18px sans-serif";c.fillText(data.title+" · "+descriptions[state.layer][0],20,27);
+   const c=out.getContext("2d");c.fillStyle="#fff";c.fillRect(0,0,out.width,out.height);c.drawImage(canvas,0,70);
+   c.fillStyle="#161616";c.font="18px sans-serif";c.fillText(data.title+" · "+descriptions[state.layer][0],20,27);
    c.font="12px sans-serif";c.fillText((data.synthetic?"模拟数据 · 非观测 | ":"本地真实成果 · 研究性空间筛查 | ")+"热权重 "+state.heatWeight.toFixed(2)+" / 阈值 "+state.threshold.toFixed(2),20,51);
    c.fillText("N ↑",out.width-48,27);
    const legendY=canvas.height+91;
@@ -195,11 +214,11 @@ function initialize(){
    if(state.layer==="zones"||state.layer==="expansion"){
      const labels=state.layer==="zones"?["低热低涝","高温优先","水涝优先","热涝双高"]:["双高区","单项高值","未达高值"];
      const colors=state.layer==="zones"?zoneColors:["#80579b","#e39b78","#9fbc89"];
-     labels.forEach((label,i)=>{c.fillStyle=colors[i];c.fillRect(20+i*110,legendY-9,9,9);c.fillStyle="#173b38";c.fillText(label,35+i*110,legendY);});
+     labels.forEach((label,i)=>{c.fillStyle=colors[i];c.fillRect(20+i*110,legendY-9,9,9);c.fillStyle="#161616";c.fillText(label,35+i*110,legendY);});
    }else{
-     c.fillStyle="#173b38";c.fillText("相对分数：0 低 → 1 高；色阶与页面当前图层一致",20,legendY);
+     c.fillStyle="#161616";c.fillText("相对分数：0 低 → 1 高；色阶与页面当前图层一致",20,legendY);
    }
-   c.fillStyle="#74847c";c.fillText("研究性空间筛查 / 浏览器参数探索",20,legendY+22);
+   c.fillStyle="#525252";c.fillText("研究性空间筛查 / 浏览器参数探索",20,legendY+22);
    out.toBlob(blob=>{if(blob)download(data.id+"-"+state.layer+".png",blob,"image/png");});
  };
 }

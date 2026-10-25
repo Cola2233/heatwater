@@ -1,5 +1,12 @@
 # Changelog
 
+## Carbon-inspired UI refresh — 2026-10-25
+
+- Applied awesome-design-md's IBM reference via a project-specific DESIGN.md.
+- Reworked layout, typography, neutral surfaces, square controls and focus states.
+- Added consistent vector icons and accessible mobile navigation.
+- Preserved analytical colors, numerical baselines and standalone offline sharing.
+
 ## HTML explorer — 2026-10-25
 
 - Added offline responsive map explorer, six layers and parameter controls.

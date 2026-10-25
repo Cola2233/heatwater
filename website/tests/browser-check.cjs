@@ -50,6 +50,13 @@ const fs=require("node:fs");
   await page.screenshot({path:path.join(out,"desktop.png"),fullPage:true});
   await page.setViewportSize({width:390,height:844});
   await page.evaluate(()=>window.scrollTo(0,0));
+  if(await page.locator("#nav-toggle").count()){
+   await page.locator("#nav-toggle").click();
+   assert.equal(await page.locator("#nav-toggle").getAttribute("aria-expanded"),"true");
+   await page.locator("#main-nav a[href='#method']").click();
+   assert.equal(await page.locator("#nav-toggle").getAttribute("aria-expanded"),"false");
+   await page.evaluate(()=>window.scrollTo(0,0));
+  }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   await page.screenshot({path:path.join(out,"mobile.png"),fullPage:true});
   const options=await page.locator("#dataset option").count();
