@@ -108,6 +108,10 @@ npm run test:browser
 设置HEATWATER_PUBLIC_BUNDLE=artifacts/releases/heatwater-demo.html可同时检查单文件。
 环境变量写法、已有Edge的使用方式与贡献流程见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
+## 项目维护与协助
+
+Rin（[Cola2233](https://github.com/Cola2233)）负责研究选题、数据与方法判断，并维护项目。[OpenAI Codex](https://github.com/codex) 作为 AI 编程助手，协助实现离线地图与城市演示、核对测试、整理文档和打包发布。
+
 ## 项目导航
 
 | 位置 | 内容 |
