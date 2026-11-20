@@ -17,7 +17,8 @@ jobs:
       - run: node --check website/core.js
       - run: node --check website/blocks-core.js && node --check website/blocks.js
   public-browser:
-    runs-on: ubuntu-latest
+    # The pinned Playwright release supports Chromium on Ubuntu 24.04.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

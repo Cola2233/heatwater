@@ -1,0 +1,23 @@
+{
+  "slug": "hong-kong",
+  "title": "香港",
+  "title_en": "Hong Kong",
+  "bounds_lonlat": [
+    114.11,
+    22.25,
+    114.21,
+    22.36
+  ],
+  "epsg": 32650,
+  "resolution_grid_m": 30,
+  "scenes": [
+    {
+      "scene": "LC08_L2SP_121045_20220624_02_T1",
+      "file": "LC08_L2SP_121045_20220624_02_T1.tif",
+      "width": 352,
+      "height": 413,
+      "valid_count": 109330,
+      "coverage": 0.7520498569227383
+    }
+  ]
+}

@@ -7,11 +7,11 @@
 | [长春四环](changchun/README.md) | 51 个主干路片区，热水联合筛查与参数稳定性 | 公开方法和结果说明，交互地图本地运行 |
 | [北京中心样区](beijing/README.md) | 2 景 Landsat 地表温度，16 个统计格 | [离线 HTML](https://github.com/Cola2233/heatwater/releases/download/v0.1.0/heatwater-beijing-temperature.html) |
 | [天津中心样区](tianjin/README.md) | 1 景 Landsat 地表温度，16 个统计格 | [离线 HTML](https://github.com/Cola2233/heatwater/releases/download/v0.1.0/heatwater-tianjin-temperature.html) |
-| [上海](shanghai/README.md) | Landsat 数据初筛 | 场景统计与准备说明 |
+| [上海中心样区](shanghai/README.md) | 1 景 Landsat 地表温度，16 个统计格 | [离线 HTML](https://github.com/Cola2233/heatwater/releases/download/v0.1.0/heatwater-shanghai-temperature.html) |
 | [广州中心样区](guangzhou/README.md) | 1 景 Landsat 地表温度，16 个统计格 | [离线 HTML](https://github.com/Cola2233/heatwater/releases/download/v0.1.0/heatwater-guangzhou-temperature.html) |
 | [深圳中心样区](shenzhen/README.md) | 1 景 Landsat 地表温度，16 个统计格 | [离线 HTML](https://github.com/Cola2233/heatwater/releases/download/v0.1.0/heatwater-shenzhen-temperature.html) |
-| [香港](hong-kong/README.md) | Landsat 数据初筛 | 场景统计与准备说明 |
-| [台北](taipei/README.md) | Landsat 数据初筛 | 场景统计与准备说明 |
+| [香港中心样区](hong-kong/README.md) | 1 景 Landsat 地表温度，16 个统计格 | [离线 HTML](https://github.com/Cola2233/heatwater/releases/download/v0.1.0/heatwater-hong-kong-temperature.html) |
+| [台北中心样区](taipei/README.md) | 1 景 Landsat 地表温度，16 个统计格 | [离线 HTML](https://github.com/Cola2233/heatwater/releases/download/v0.1.0/heatwater-taipei-temperature.html) |
 
 想体验完整交互流程，可以从[模拟案例教程](../docs/quickstart-zh.md)开始。[其余城市的准备计划](../docs/china-city-cases.md)
 

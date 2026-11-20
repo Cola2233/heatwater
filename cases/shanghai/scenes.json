@@ -1,0 +1,23 @@
+{
+  "slug": "shanghai",
+  "title": "上海",
+  "title_en": "Shanghai",
+  "bounds_lonlat": [
+    121.43,
+    31.17,
+    121.55,
+    31.27
+  ],
+  "epsg": 32651,
+  "resolution_grid_m": 30,
+  "scenes": [
+    {
+      "scene": "LC09_L2SP_118038_20220814_02_T1",
+      "file": "LC09_L2SP_118038_20220814_02_T1.tif",
+      "width": 387,
+      "height": 375,
+      "valid_count": 145120,
+      "coverage": 0.9999655469422911
+    }
+  ]
+}

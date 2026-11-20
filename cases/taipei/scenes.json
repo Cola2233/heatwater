@@ -1,0 +1,23 @@
+{
+  "slug": "taipei",
+  "title": "台北",
+  "title_en": "Taipei",
+  "bounds_lonlat": [
+    121.48,
+    25.0,
+    121.6,
+    25.09
+  ],
+  "epsg": 32651,
+  "resolution_grid_m": 30,
+  "scenes": [
+    {
+      "scene": "LC09_L2SP_117043_20230709_02_T1",
+      "file": "LC09_L2SP_117043_20230709_02_T1.tif",
+      "width": 408,
+      "height": 337,
+      "valid_count": 132850,
+      "coverage": 0.9662099261069413
+    }
+  ]
+}

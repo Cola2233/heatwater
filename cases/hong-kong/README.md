@@ -1,12 +1,14 @@
-# 香港 · Landsat 数据初筛
+# 香港中心样区 · Landsat 地表温度
 
 [返回城市案例](../README.md)
 
-已抽查中心城区样区在 2014、2023 年夏季的公开 Landsat 地表温度目录。以下是当前候选记录，待完成样区像元质量检查后提供交互附件。
+离线地图展示公开 Landsat 的单景地表温度。用浏览器打开后可点击 16 个规则网格，查看均值、温度范围与有效像元数，并下载 CSV。
+[下载香港离线地图](https://github.com/Cola2233/heatwater/releases/download/v0.1.0/heatwater-hong-kong-temperature.html)
 
-| 年份 | Tier 1 温度候选场景 | 整景云量 ≤35% 的不同观测日 |
-|---|---:|---:|
-| 2014 | 22 | 2 |
-| 2023 | ≥36 | ≥12 |
+样区为 114.11–114.21°E、22.25–22.36°N。影像对齐至 EPSG:32650 的 30 米采样网格。
 
-整景云量用于目录初筛。空间范围和共享流程见[八城案例方案](../../docs/china-city-cases.md)。
+| 观测日期 | USGS 场景 | 掩膜后有效覆盖 |
+|---|---|---:|
+| 2022-06-24 | LC08_L2SP_121045_20220624_02_T1 | 75.20% |
+
+这是中心城区样区的初步温度案例。天气和观测日期会影响单景值。质控方法沿用[温度样例流程](../../docs/beijing-temperature-demo.md)。[场景清单](scenes.json) · [USGS 产品说明与引用](https://www.usgs.gov/landsat-missions/landsat-collection-2-surface-temperature)
