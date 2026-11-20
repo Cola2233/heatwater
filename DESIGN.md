@@ -1,5 +1,28 @@
 # Heatwater UI design system
 
+## Current approved direction (2026-11-02)
+
+The current interface uses the user-approved C atlas layout, combining A's
+analytical overview with B's focused parameter tools. See
+[approval](direction-approved.md) and [implementation and verification](docs/design-atlas-final.md).
+
+Current tokens: paper #f1eee6, panel #f8f6f0, ink #262a29,
+muted #62645c, divider #d0cbbc, accent #ac472f, map #222c2d.
+The dominant material is the actual research raster. Charts use the same valid
+pixels as the map; no fabricated time series or terrain is included.
+
+Use local serif titles and system sans text, body 14–16px and labels at least
+12px. Six layers, parameter controls, exports and map focus remain available
+offline. Responsive layouts are verified at 1440, 1024, 768 and 375px.
+
+Design references: [Huashu Design](https://github.com/alchaincyf/huashu-design)
+and [sc-datav](https://github.com/knight-L/sc-datav). The latter supplies visual
+composition references; its map assets and source code are not copied.
+
+## Archived Carbon direction (superseded)
+
+The remaining specification documents the earlier design for provenance.
+
 Reference: [VoltAgent/awesome-design-md — IBM DESIGN.md](https://github.com/VoltAgent/awesome-design-md/blob/main/design-md/ibm/DESIGN.md)
 Reference Git blob: dbef1c5b20357a8953e6832e5d383a866a66f11a
 Full source and license are retained in docs/design-sources/.

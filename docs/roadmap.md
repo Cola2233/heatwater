@@ -1,17 +1,39 @@
-# Roadmap
+# 开源项目路线图
 
-Version 0.1.0 focuses on reproducible local processing and a complete synthetic
-case. These steps strengthen the research:
+项目定位是可复现的地理空间研究工具，包含离线探索界面。长春是案例，公开数据入口为模拟案例。
+以下为维护优先级，不是已交付功能或发布时间承诺。
 
-1. Recover source versions, original acquisition scripts, QA/cloud masks and
-   upstream license evidence for the real Changchun case.
-2. Add independent observed flood locations and compare spatial screening
-   against held-out observations with leakage-aware spatial splits.
-3. Compare heat composite definitions, input uncertainty and land-cover dates.
-4. Add population/occupancy data with explicit temporal and spatial support.
-5. Validate intervention recommendations with local planning and drainage data.
-6. Release permitted real-data artifacts and a citable archive only after
-   provenance review; publish a DOI when an archive actually exists.
+## 首个公开版本：容易试用、能够复现
 
-A web dashboard is optional after these methods and data checks; the reusable
-pipeline and evidence take priority.
+- [x] MIT代码许可，单独说明第三方数据许可。
+- [x] 可生成的模拟GIS案例、配置模板、校验清单与核心测试。
+- [x] 无CDN的离线地图、公开模拟入口和单文件打包。
+- [x] 已选城市图谱UI，包含参数、图层、联动图表与导出。
+- [x] 可选道路推导街区、像元统计汇总、详情与排序，真实和模拟数据分开提供。
+- [x] 打包默认选择公开入口；浏览器测试独立于私人栅格和设计工具。
+- [x] 配置Python、GIS及公开浏览器CI，提供构建产物上传步骤。
+- [ ] 在实际GitHub仓库验证CI并修复平台差异。
+- [ ] 发布带有模拟HTML与Python包的v0.1.0 Release。
+
+## 下一阶段：成为易维护的软件
+
+- [x] MapLibre独立研究预览接入片区解释、72组参数稳定性与核查清单导出，保留正式Canvas入口。
+
+- 将时间窗口、输出命名、CRS和研究范围中仍与案例绑定的部分整理成数据契约。
+- 为自有数据提供清晰的导入诊断：字段、单位、网格和缺失值错误。
+- 建立输入契约与输出格式的版本兼容策略。
+- 收集第一批使用者的安装失败、数据适配与交互问题，优先修复阻塞问题。
+- 根据实际贡献需求补充英文入门文档与示例配置。
+
+## 研究与数据扩展
+
+- 补全长春输入来源版本、处理过程与可再分发许可证据。
+- 引入独立积水观测，采用空间隔离的验证方式评估筛查结果。
+- 比较热合成定义、输入不确定性与土地覆盖日期。
+- 在有明确时空支撑时引入人口或占用数据。
+- 经上游许可核验后，再决定是否发布真实数据衍生成果和引用存档。
+
+## 暂不扩展
+
+目前优先完善本地工具与复现体验，不为演示加入账号系统、云数据库、实时监控、
+无高程依据的3D地形或未经验证的预测服务。

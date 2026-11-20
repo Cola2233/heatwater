@@ -15,6 +15,7 @@ For the real case, acquire your own permitted copies and set config/local.json:
 | hardening | no | Support raster with valid CRS |
 | low_elevation | no | Support raster with valid CRS |
 | context_vectors | no | city_boundary, waterways, major_roads layers, reference CRS |
+| block_roads | no | Optional road GPKG with declared CRS, roads layer, highway classification and optional other_tags |
 
 Building defaults: layer changchun_4ring_building_function, field Function,
 values Residential, Educational, Healthcare, Public service.
@@ -26,3 +27,6 @@ Input paths resolve relative to project_root, itself relative to the config file
 Place third-party data in ignored data/external/. Store licensing evidence and
 source acquisition/QA records alongside your local data. Review DATA_LICENSE.md
 before distributing any real or derived data.
+
+Road-derived blocks are an optional postprocessing step. See ../docs/blocks.md
+for eligible road classes, explicit bridge/tunnel filtering, ownership and limitations.

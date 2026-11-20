@@ -1,0 +1,23 @@
+{
+  "slug": "shenzhen",
+  "title": "深圳",
+  "title_en": "Shenzhen",
+  "bounds_lonlat": [
+    113.99,
+    22.5,
+    114.12,
+    22.59
+  ],
+  "epsg": 32649,
+  "resolution_grid_m": 30,
+  "scenes": [
+    {
+      "scene": "LC08_L2SP_122044_20230602_02_T1",
+      "file": "LC08_L2SP_122044_20230602_02_T1.tif",
+      "width": 454,
+      "height": 343,
+      "valid_count": 145836,
+      "coverage": 0.9365150717303914
+    }
+  ]
+}

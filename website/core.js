@@ -24,7 +24,7 @@
       if(c>=t){highScoreCount++;if(e>=Math.fround(.6))highExposureCount++;}
       if(data.transition[i]===2)expansion[i]=z===4?1:(z===1?3:2);
     }
-    return {zones,expansion,compound,counts,validCount,area:validCount*pixelArea,
+    return {zones,expansion,compound,counts,validCount,threshold,area:validCount*pixelArea,
             highScoreCount,highExposureCount,pixelArea};
   }
   const api={analyze};

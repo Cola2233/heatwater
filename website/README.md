@@ -4,24 +4,23 @@
 
 ## 设计规范
 
-当前 UI 采用 awesome-design-md 中 IBM / Carbon 的白底、蓝色操作重点、
-方角组件、4 px 间距和轻量大字号规则。适配说明在项目根目录 DESIGN.md；
-原始规范与 MIT 许可保存在 docs/design-sources/。界面保留本项目名称与
-科学图层色义，不使用 IBM 标志，也不表示与该品牌存在关联。
-字体优先使用本机 IBM Plex Sans，未安装时回退到系统中英文字体；
-不会从外部字体服务加载资源，单文件仍可离线使用。
+当前采用用户选定的 C 城市风险图谱，并融合 A 的紧凑分析总览、B 的集中参数操作。
+布局为深色主地图与浅色结论区，下方展示分区构成、热水联合分布与建筑暴露。
+设计依据与验证见 [融合实现记录](../docs/design-atlas-final.md)。
+字体使用本机中英文字体，不请求外部字体或在线地图，单文件可离线使用。
 
 ## 单文件分享
 
 把页面、样式、脚本和全部地图数据嵌入一个 HTML：
 
 ```sh
-python -m scripts.build_single_html --entry website/local.html --output artifacts/share/changchun.html
+python -m scripts.build_single_html --output artifacts/releases/heatwater-demo.html
 ```
 
 将生成的 HTML 单独发送给朋友即可，不需要附带目录或开启服务器。
 对方先保存文件，再用 Edge、Chrome 或其他现代浏览器打开。
-公开模拟案例可将入口改为 website/index.html。
+以上默认使用公开模拟案例。生成本地长春真实数据文件时，显式使用
+`--entry website/local.html --output artifacts/share/changchun.html`。
 真实成果单文件包含真实栅格的浏览器数据；它属于本地分享成果，
 不会自动纳入公开 Git 仓库。部分聊天软件的内置预览不执行 JavaScript，
 这种情况下请下载后在系统浏览器中打开。
@@ -39,6 +38,9 @@ python -m http.server 8765 --bind 127.0.0.1 --directory website
 地图支持六个图层、滚轮/按钮缩放、拖动平移、悬停像元查询。
 键盘聚焦地图后，可用 +/- 缩放、方向键平移、0 复位。
 参数滑块更新面积统计，可下载 PNG、分区 CSV 与探索参数 JSON。
+包含街区数据时默认显示道路街区；可切回原始像元。点击色块查看下方详情，
+若包含概览尺度，则优先显示片区概览；地图上方“分区粒度”可切回细街区。
+支持编号搜索、覆盖筛选、指标排序、分页及街区CSV导出。详见 [街区方法与生成步骤](../docs/blocks.md)。
 JSON 标记 exploration_only，不能直接替代 Python 运行配置。
 
 ## 使用本地长春成果
@@ -70,6 +72,17 @@ python -m scripts.export_web_data --config artifacts/web-demo/config.json
 
 ## 检查
 
+公开贡献和CI默认使用不依赖真实数据的检查：
+
+```sh
+npm ci
+npx playwright install chromium
+npm run test:browser
+```
+
+完整检查与环境变量见 [贡献指南](../CONTRIBUTING.md)。下方两项旧浏览器脚本用于本地真实案例检查，
+不属于首次克隆仓库后的必需步骤；atlas-check.cjs的视觉采集器仅在本地参考工具存在时启用。
+
 ```sh
 node --test website/tests/core.test.cjs website/tests/dataset.test.cjs
 node --check website/app.js
@@ -79,6 +92,7 @@ node --check website/app.js
 
 ```sh
 node website/tests/browser-check.cjs
+node website/tests/atlas-check.cjs
 ```
 
 默认检查本地入口。HEATWATER_URL 可指定其他已启动的预览地址，

@@ -42,6 +42,10 @@ Titles explicitly say SYNTHETIC DEMO. Reuse a different empty directory
 when regenerating inputs; the generator refuses to overwrite existing data.
 
 Expected: 20 required artifacts validated, plus output_manifest.csv.
+Optional street-block processing is documented in [blocks.md](blocks.md).
+Run `python -m scripts.blocks --config demo/config.json` before web export to
+include the generated nine-block example. Block outputs are additional derived
+products and do not change the core 20-artifact contract.
 The demo analysis grid is 48×40; the first row is deliberately invalid.
 Synthetic output includes ten rasters, two summary tables, input manifest,
 four maps, run metadata and two sensitivity artifacts.

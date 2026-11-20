@@ -1,0 +1,23 @@
+{
+  "slug": "guangzhou",
+  "title": "广州",
+  "title_en": "Guangzhou",
+  "bounds_lonlat": [
+    113.24,
+    23.09,
+    113.36,
+    23.18
+  ],
+  "epsg": 32649,
+  "resolution_grid_m": 30,
+  "scenes": [
+    {
+      "scene": "LC08_L2SP_122044_20230602_02_T1",
+      "file": "LC08_L2SP_122044_20230602_02_T1.tif",
+      "width": 416,
+      "height": 340,
+      "valid_count": 116858,
+      "coverage": 0.8262019230769231
+    }
+  ]
+}

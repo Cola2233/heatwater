@@ -26,3 +26,6 @@ docs/submission_draft.md
 website/local.html
 website/data/local.js
 design-demos/
+node_modules/
+playwright-report/
+test-results/

@@ -1,0 +1,25 @@
+include README.md LICENSE DATA_LICENSE.md CITATION.cff CHANGELOG.md CONTRIBUTING.md
+include environment.yml config/example.json
+include data/README.md
+include package.json package-lock.json DESIGN.md direction-approved.md SECURITY.md CODE_OF_CONDUCT.md
+include website/index.html website/style.css website/core.js website/charts.js website/app.js
+include website/README.md website/data/demo.js
+include website/temperature-demo.html
+include website/blocks.css website/blocks.js website/blocks-core.js
+include website/feedback-core.js website/map-feedback.js website/map-feedback.css
+include website/stability-core.js
+recursive-include website/tests *.cjs
+recursive-include website/maplibre-lab *.html *.css *.js *.cjs *.json
+include experiments/neatnet-requirements.txt
+recursive-include tests *.py
+recursive-include docs *.md *.png *.jpg
+recursive-include cases *.md *.json
+include docs/design-sources/LICENSE
+recursive-include auxiliary *.md
+exclude website/local.html website/data/local.js config/local.json
+prune artifacts
+prune outputs
+prune design-demos
+prune node_modules
+prune website/maplibre-lab/node_modules
+prune website/maplibre-lab/bundle

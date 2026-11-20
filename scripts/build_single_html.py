@@ -64,7 +64,8 @@ def build_single_html(entry: Path, output: Path) -> Path:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--entry", type=Path, default=Path("website/local.html"))
+    parser.add_argument("--entry", type=Path, default=Path("website/index.html"),
+                        help="Public synthetic entry by default; select local.html explicitly for private data")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     output = build_single_html(args.entry, args.output)

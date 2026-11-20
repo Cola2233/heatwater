@@ -1,9 +1,24 @@
 import tempfile
 import unittest
+import subprocess
+import sys
 from pathlib import Path
 from scripts.build_single_html import build_single_html
 
 class SingleHtmlTests(unittest.TestCase):
+    def test_cli_defaults_to_redistributable_demo(self):
+        entry = Path(__file__).resolve().parents[1] / "website" / "index.html"
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d) / "heatwater-demo.html"
+            subprocess.run([sys.executable, "-m", "scripts.build_single_html",
+                            "--output", str(out)], cwd=entry.parents[1],
+                           capture_output=True, check=True)
+            text = out.read_text(encoding="utf-8")
+            self.assertIn('window.HEATWATER_DATASETS["demo"]', text)
+            self.assertNotIn('window.HEATWATER_DATASETS["changchun"]', text)
+            self.assertNotIn('src="', text)
+            self.assertIn('window.HeatwaterCharts={update:updatePanels}', text)
+
     def test_assets_inlined_after_body_and_keep_execution_order(self):
         with tempfile.TemporaryDirectory() as d:
             root=Path(d)

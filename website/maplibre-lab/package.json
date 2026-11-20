@@ -1,0 +1,7 @@
+{
+  "name": "heatwater-maplibre-pilot",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {"bundle": "node bundle.cjs"},
+  "devDependencies": {"esbuild": "0.28.2", "maplibre-gl": "6.16.0"}
+}

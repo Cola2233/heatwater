@@ -1,0 +1,21 @@
+{
+  "name": "heatwater-web-checks",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Optional development checks for the dependency-free offline explorer",
+  "scripts": {
+    "test": "node --test website/tests/core.test.cjs website/tests/dataset.test.cjs website/tests/blocks.test.cjs website/tests/blocks-parity.test.cjs website/tests/feedback.test.cjs website/tests/stability.test.cjs",
+    "test:browser": "node website/tests/public-browser-check.cjs",
+    "test:blocks": "node website/tests/blocks-browser-check.cjs",
+    "check": "node --check website/core.js && node --check website/charts.js && node --check website/app.js && node --check website/blocks-core.js && node --check website/blocks.js && node --check website/feedback-core.js && node --check website/map-feedback.js",
+    "test:feedback": "node website/tests/feedback-browser-check.cjs",
+    "test:research": "node website/maplibre-lab/research-check.cjs",
+    "check:research": "node --check website/stability-core.js && node --check website/maplibre-lab/explanation.js && node --check website/maplibre-lab/pilot.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}

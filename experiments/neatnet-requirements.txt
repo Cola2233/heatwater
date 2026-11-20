@@ -1,0 +1,4 @@
+# Install in an isolated environment; do not upgrade a QGIS environment in place.
+neatnet==0.1.6
+pyogrio==0.13.0
+matplotlib==3.11.2

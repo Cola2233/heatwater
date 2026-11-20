@@ -10,8 +10,44 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: node --test website/tests/core.test.cjs website/tests/dataset.test.cjs
+      - run: npm test
+      - run: npm run check:research
       - run: node --check website/app.js
+      - run: node --check website/charts.js
+      - run: node --check website/core.js
+      - run: node --check website/blocks-core.js && node --check website/blocks.js
+  public-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: python -m scripts.build_single_html --output artifacts/releases/heatwater-demo.html
+      - run: npm run test:browser
+        env:
+          HEATWATER_PUBLIC_BUNDLE: artifacts/releases/heatwater-demo.html
+      - run: npm run test:blocks
+        env:
+          HEATWATER_BLOCK_ENTRY: artifacts/releases/heatwater-demo.html
+      - run: npm run test:feedback
+        env:
+          HEATWATER_FEEDBACK_ENTRY: artifacts/releases/heatwater-demo.html
+      - name: Save public demo and browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-demo-and-browser-checks
+          path: |
+            artifacts/releases/heatwater-demo.html
+            artifacts/frontend/public/
+          if-no-files-found: error
   unit:
     runs-on: ubuntu-latest
     strategy:
@@ -31,13 +67,38 @@ jobs:
       - run: python -m unittest discover -s tests -v
       - run: python -m compileall -q scripts
       - run: git diff --check
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install build
+      - run: python -m build
+      - run: python -m pip install dist/*.whl
+      - name: Check installed entry points outside the checkout
+        working-directory: ${{ runner.temp }}
+        run: |
+          python -c "import heatwater; print(heatwater.__version__)"
+          heatwater --help
+          heatwater-validate --help
+          heatwater-web-export --help
+          heatwater-bundle --help
+          heatwater-blocks --help
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-distributions
+          path: dist/*
   geospatial:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y python3-gdal python3-numpy python3-matplotlib fonts-noto-cjk
+      - run: sudo apt-get install -y python3-shapely python3-scipy
       - run: /usr/bin/python3 -m unittest discover -s tests -v
       - run: /usr/bin/python3 -m scripts.synthetic_case --directory demo
       - run: /usr/bin/python3 -m scripts.run_pipeline --config demo/config.json
       - run: /usr/bin/python3 -m scripts.validate_outputs --config demo/config.json
+      - run: /usr/bin/python3 -m scripts.blocks --config demo/config.json
       - run: /usr/bin/python3 -m scripts.export_web_data --config demo/config.json

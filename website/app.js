@@ -1,9 +1,10 @@
 /* Offline UI: no analytics, network map services, or build dependencies. */
 (function(){
 "use strict";
+
 const $=id=>document.getElementById(id);
 const datasets=window.HEATWATER_DATASETS||{};
-const zoneNames=["低热低涝 · 生态协同","高温分量优先","水涝分量优先","热涝双高 · 综合核查"];
+const zoneNames=["低热低涝","高温优先","水涝优先","热涝双高"];
 const zoneColors=["#cbdcb9","#e39b78","#72abc5","#80579b"];
 const descriptions={
  zones:["热涝治理分区","分别判断热、水分量是否达到阈值。四类分区提供不同的空间核查视角；改变权重不会改变这一分区。"],
@@ -13,25 +14,38 @@ const descriptions={
  exposure:["建筑功能暴露","住宅、教育、医疗、公共服务建筑的功能存在代理。权重叠加后截断至 1，不代表人口数量。"],
  expansion:["新增不透水面","转换编码 2 与四类分区叠加。紫色为双高区，橙色为单项高值，绿色为未达到分量阈值；空白为未选中。"]
 };
-const state={layer:"zones",heatWeight:.55,threshold:.67,zoom:1,panX:0,panY:0};
-let data,result,raster=document.createElement("canvas"),transform,frame=0;
+const state={layer:"compound",view:"raster",blockScale:"detail",heatWeight:.55,threshold:.67,zoom:1,panX:0,panY:0};
+let data,result,raster=document.createElement("canvas"),transform,frame=0,blockView,feedbackView,lastSettings=null,previousRaster;
 const canvas=$("map"),ctx=canvas.getContext("2d");
 function decode(encoded,type){
  const binary=atob(encoded),bytes=new Uint8Array(binary.length);
  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
- return type==="u8"?bytes:new Float32Array(bytes.buffer);
+ return type==="u8"?bytes:type==="u32"?new Uint32Array(bytes.buffer):new Float32Array(bytes.buffer);
 }
 function loadDataset(id){
+ lastSettings=null;cancelAnimationFrame(frame);feedbackView.reset();
  const raw=datasets[id];if(!raw)throw new Error("数据文件不存在");
  data={...raw.meta,heat:decode(raw.arrays.heat),water:decode(raw.arrays.water),
-       exposure:decode(raw.arrays.exposure),transition:decode(raw.arrays.transition,"u8")};
+       exposure:decode(raw.arrays.exposure),transition:decode(raw.arrays.transition,"u8"),
+       blocks:raw.blocks,blockIds:raw.arrays.block_ids?decode(raw.arrays.block_ids,"u32"):null};
+ const primary=raw.blocks?.diagnostics.scale||"detail";
+ data.blockScales=raw.blocks?{[primary]:{blocks:raw.blocks,ids:raw.arrays.block_ids},...raw.block_scales}:{};
+ state.blockScale=primary;
+ $("block-scale").replaceChildren();
+ for(const [key,variant]of Object.entries(data.blockScales)){
+   const option=document.createElement("option");option.value=key;
+   option.textContent=(key==="overview"?"片区概览":"细街区")+"（"+variant.blocks.features.length+"）";$("block-scale").append(option);
+ }
+ $("block-scale").value=primary;$("block-scale-control").hidden=Object.keys(data.blockScales).length<2;
  state.zoom=1;state.panX=state.panY=0;
- $("dataset-tag").textContent=data.synthetic?"模拟案例 · 非观测":"真实成果 · 仅本地";
+ state.view=data.blocks?"blocks":"raster";
+ syncViewButtons();
+ $("dataset-tag").textContent=data.synthetic?"模拟案例（非观测）":"本地真实成果";
  $("dataset-tag").classList.toggle("synthetic",data.synthetic);
  $("dataset-description").textContent=data.synthetic?"自动生成的模拟栅格与建筑；演示算法及交互。":"本地长春成果；未上传在线服务。";
  if($("hero-case"))$("hero-case").textContent=data.synthetic?"模拟案例 / 非观测":"长春四环 / 本地成果";
  $("map-caption").textContent=data.title+" / "+descriptions[state.layer][0];
- $("map-extent").textContent=data.width+" × "+data.height+" px · EPSG:"+data.epsg;
+ $("map-extent").textContent="网格 "+data.width+"×"+data.height+" / EPSG:"+data.epsg;
  $("source-detail").textContent="当前案例："+data.title+"；"+
    (data.synthetic?"所有数值与建筑均为模拟。":"热环境窗口："+data.periods.join(" 与 ")+"。")+
    " 原始分析分辨率 "+data.resolution+" m。界面加载 Python 流程导出的热、水、建筑暴露与土地转换栅格，不执行重新投影。";
@@ -39,6 +53,14 @@ function loadDataset(id){
 }
 const number=n=>n.toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2});
 function compute(){
+ const before=result,previous=lastSettings;
+ const kind=previous&&previous.threshold!==state.threshold?'threshold':previous&&previous.heatWeight!==state.heatWeight?'weight':null;
+ let switched=false;
+ if(kind&&feedbackView.following){
+  const target=kind==='weight'?'compound':'zones';switched=state.layer!==target;state.layer=target;
+  document.querySelectorAll('[data-layer]').forEach(b=>{b.classList.toggle('selected',b.dataset.layer===target);b.setAttribute('aria-pressed',String(b.dataset.layer===target));});
+ }
+ $('map-hover-card').hidden=true;
  result=window.HeatwaterCore.analyze(data,state);
  $("metric-area").textContent=number(result.area);
  $("metric-pixels").textContent=result.validCount.toLocaleString("zh-CN")+" 个共同有效像元";
@@ -67,33 +89,55 @@ function compute(){
    number(result.counts[3]*result.pixelArea)+" km²。按复合分数与建筑暴露联合筛查，候选区域为 "+
    number(result.highExposureCount*result.pixelArea)+" km²。两种判定口径不同，不表示包含关系。"+
    (data.synthetic?" 这是模拟案例的交互结果。":"");
+ window.HeatwaterCharts.update(data,result,state);blockView.update(data,result,state);
+ if(kind&&before)feedbackView.update(data,before,result,previous,state,kind,switched);
+ lastSettings={heatWeight:state.heatWeight,threshold:state.threshold};
  rasterize();updateLegend();draw();
 }
 function continuous(v,low,high){
  const t=Math.max(0,Math.min(1,v));return low.map((x,i)=>Math.round(x+(high[i]-x)*t));
 }
-function colorAt(i){
- if(!result.zones[i])return null;
+function colorAt(i,analysis=result){
+ if(!analysis.zones[i])return null;
  const layer=state.layer;
- if(layer==="zones")return zoneColors[result.zones[i]-1];
- if(layer==="expansion")return result.expansion[i]?[null,"#80579b","#e39b78","#9fbc89"][result.expansion[i]]:null;
+ if(layer==="zones")return zoneColors[analysis.zones[i]-1];
+ if(layer==="expansion")return analysis.expansion[i]?[null,"#80579b","#e39b78","#9fbc89"][analysis.expansion[i]]:null;
  if(layer==="heat")return continuous(data.heat[i],[255,242,194],[201,73,51]);
  if(layer==="water")return continuous(data.water[i],[227,241,244],[43,101,151]);
- if(layer==="compound")return continuous(result.compound[i],[228,237,214],[103,67,135]);
+ if(layer==="compound")return continuous(analysis.compound[i],[228,237,214],[103,67,135]);
  return continuous(data.exposure[i],[238,240,231],[49,115,91]);
 }
 function hex(hex){return [1,3,5].map(p=>parseInt(hex.slice(p,p+2),16));}
-function rasterize(){
+function makeRaster(analysis){
+ const raster=document.createElement("canvas");
  raster.width=data.width;raster.height=data.height;
  const rc=raster.getContext("2d"),image=rc.createImageData(data.width,data.height);
  for(let i=0;i<result.zones.length;i++){
-   let c=colorAt(i);if(!c)continue;if(typeof c==="string")c=hex(c);
+   let c=colorAt(i,analysis);if(!c)continue;if(typeof c==="string")c=hex(c);
    image.data.set([c[0],c[1],c[2],255],i*4);
  }
- rc.putImageData(image,0,0);
+ rc.putImageData(image,0,0);return raster;
 }
+function rasterize(){raster=makeRaster(result);previousRaster=feedbackView.before?makeRaster(feedbackView.before):null;}
 function updateLegend(){
  $("legend").replaceChildren();
+ if(feedbackView.active){
+  const title=feedbackView.kind==='weight'?'复合分数变化':'双高判定变化';
+  $('legend').textContent='与上一步比较：橙色增加 / 青色减少 / 淡色未变化';
+  $('map-caption').textContent=data.title+' / '+title;
+  $('layer-title').textContent=title;
+  $('layer-note').textContent='变化来自当前与上一步参数的实际计算差。片区显示均值或占比差，原始像元显示逐像元变化。取消“显示本次变化”可查看当前值。';return;
+ }
+
+ if(state.view==="blocks"&&data.blocks){
+   const colors={zones:["#e4edd6","#674387"],heat:["#fff2c2","#c94933"],water:["#e3f1f4","#2b6597"],compound:["#e4edd6","#674387"],exposure:["#eef0e7","#31735b"],expansion:["#eef0e7","#31735b"]}[state.layer];
+   const span=document.createElement("span"),gradient=document.createElement("i");gradient.className="gradient";
+   gradient.style.background="linear-gradient(90deg,"+colors.join(",")+")";
+   span.append(document.createTextNode("分区统计 0 "),gradient,document.createTextNode(" 1"));$("legend").append(span);
+   const [title,note]=blockView.description(state.layer);
+   $("layer-title").textContent=title;$("layer-note").textContent=note;$("map-caption").textContent=data.title+" / "+title+(state.blockScale==="overview"?"（片区）":"（街区）");
+   return;
+ }
  if(state.layer==="zones"||state.layer==="expansion"){
    const names=state.layer==="zones"?["低热低涝","高温优先","水涝优先","热涝双高"]:["双高 · 优先核查","单项高值","未达高值"];
    const colors=state.layer==="zones"?zoneColors:["#80579b","#e39b78","#9fbc89"];
@@ -113,24 +157,30 @@ function draw(){
  const rect=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1,W=rect.width,H=rect.height;
  if(W<1||H<1)return;
  canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
- ctx.fillStyle="#f4f4f4";ctx.fillRect(0,0,W,H);ctx.strokeStyle="#e0e0e0";ctx.lineWidth=.5;
+ ctx.fillStyle="#222c2d";ctx.fillRect(0,0,W,H);ctx.strokeStyle="#33413f";ctx.lineWidth=.5;
  for(let x=0;x<W;x+=36){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
  for(let y=0;y<H;y+=36){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
  const scale=Math.min((W-70)/data.width,(H-75)/data.height)*state.zoom;
  const x=(W-data.width*scale)/2+state.panX,y=(H-data.height*scale)/2-5+state.panY;
  transform={x,y,scale,W,H};ctx.imageSmoothingEnabled=false;
- ctx.drawImage(raster,x,y,data.width*scale,data.height*scale);
+ if(state.view==="blocks"&&data.blocks)blockView.draw(ctx,transform,state.layer,feedbackView.appearance());
+ else {
+  ctx.globalAlpha=feedbackView.active?.22:1;
+  ctx.drawImage(feedbackView.comparing&&previousRaster?previousRaster:raster,x,y,data.width*scale,data.height*scale);
+  ctx.globalAlpha=1;
+  if(feedbackView.active)ctx.drawImage(feedbackView.overlay,x,y,data.width*scale,data.height*scale);
+ }
  // This is a pixel-grid extent, not a cadastral or administrative boundary.
- ctx.strokeStyle="#8d8d8d";ctx.lineWidth=.7;ctx.strokeRect(x,y,data.width*scale,data.height*scale);
- ctx.font="10px system-ui";ctx.fillStyle="#525252";
+ ctx.strokeStyle="#70867b";ctx.lineWidth=.7;ctx.strokeRect(x,y,data.width*scale,data.height*scale);
+ ctx.font="10px system-ui";ctx.fillStyle="#d5ded4";
  ctx.fillText("E "+Math.round(data.geotransform[0]).toLocaleString("en-US")+" m",Math.max(10,x),Math.max(12,y-8));
  const desired=data.resolution*90/scale,power=10**Math.floor(Math.log10(desired));
  const distance=[1,2,5,10].map(n=>n*power).find(n=>n>=desired)||power*10;
  const length=distance/data.resolution*scale,barX=W-25-length,barY=H-27;
- ctx.fillStyle="#fff";ctx.fillRect(barX-7,barY-19,length+14,30);
- ctx.fillStyle="#161616";ctx.fillRect(barX,barY,length,2);
+ ctx.fillStyle="#263b35";ctx.fillRect(barX-7,barY-19,length+14,30);
+ ctx.fillStyle="#d5ded4";ctx.fillRect(barX,barY,length,2);
  ctx.font="11px system-ui";ctx.fillText(distance>=1000?(distance/1000)+" km":distance+" m",barX,barY-5);
- if(data.synthetic){ctx.fillStyle="#525252";ctx.font="10px system-ui";ctx.fillText("SYNTHETIC · 非观测",12,H-78);}
+ if(data.synthetic){ctx.fillStyle="#d5ded4";ctx.font="10px system-ui";ctx.fillText("SYNTHETIC · 非观测",12,H-78);}
 }
 function scheduleCompute(){cancelAnimationFrame(frame);frame=requestAnimationFrame(compute);}
 function zoom(factor){state.zoom=Math.max(.6,Math.min(8,state.zoom*factor));draw();}
@@ -139,6 +189,18 @@ function inspect(event){
  const rect=canvas.getBoundingClientRect(),col=Math.floor((event.clientX-rect.left-transform.x)/transform.scale),
  row=Math.floor((event.clientY-rect.top-transform.y)/transform.scale);
  const i=row*data.width+col;
+ if(state.view==="blocks"&&data.blocks){
+   const block=blockView.hit(col,row);
+   blockView.hover(block?block.id:null);
+   const card=$('map-hover-card');card.hidden=!block;
+   if(block){
+    $('map-hover-title').textContent=block.name;$('map-hover-values').textContent=feedbackView.hoverText(block);
+    card.style.left=Math.max(8,Math.min(rect.width-260,event.clientX-rect.left+14))+'px';
+    card.style.top=Math.max(8,Math.min(rect.height-110,event.clientY-rect.top+14))+'px';
+   }
+   $("pixel-inspector").textContent=block?block.name+" / "+block.valid_pixels+" 个有效像元 / 点击查看街区详情":"街区范围外，拖动地图可平移";
+   return;
+ }
  if(col<0||col>=data.width||row<0||row>=data.height||!result.zones[i]){
    $("pixel-inspector").textContent="范围外或无有效观测 · 拖动地图可平移";return;
  }
@@ -157,6 +219,8 @@ function exportCsv(){
 }
 function initialize(){
  if(!window.HeatwaterCore||!Object.keys(datasets).length)throw new Error("未找到网页数据，请先执行 export_web_data。");
+ feedbackView=window.HeatwaterMapFeedback.create({redraw:()=>{updateLegend();draw();}});
+ blockView=window.HeatwaterBlocks.create({redraw:draw,mode:setView,download,locate:locateBlock});
  for(const[id,payload]of Object.entries(datasets)){const option=document.createElement("option");option.value=id;option.textContent=payload.meta.title+(payload.meta.synthetic?" · 模拟":" · 本地真实成果");$("dataset").append(option);}
  $("dataset").value=datasets.changchun?"changchun":"demo";loadDataset($("dataset").value);
  const navToggle=$("nav-toggle"),navigation=$("main-nav");
@@ -178,7 +242,16 @@ function initialize(){
    window.matchMedia("(min-width:673px)").addEventListener("change",closeNav);
  }
  $("dataset").addEventListener("change",e=>loadDataset(e.target.value));
+ $("view-blocks").onclick=()=>setView("blocks");$("view-raster").onclick=()=>setView("raster");
+ $("block-scale").onchange=e=>{
+   feedbackView.reset("分区尺度已切换，参数保持不变。");lastSettings=null;
+   const variant=data.blockScales[e.target.value];if(!variant)return;
+   data={...data,blocks:variant.blocks,blockIds:decode(variant.ids,"u32")};
+   state.blockScale=e.target.value;state.view="blocks";state.zoom=1;state.panX=state.panY=0;
+   syncViewButtons();compute();
+ };
  document.querySelectorAll("[data-layer]").forEach(button=>button.addEventListener("click",()=>{
+   feedbackView.reset("已切换图层。拖动滑块可查看参数影响；取消跟随可保留此底图。");
    state.layer=button.dataset.layer;
    document.querySelectorAll("[data-layer]").forEach(b=>{const selected=b===button;b.classList.toggle("selected",selected);b.setAttribute("aria-pressed",String(selected));});
    rasterize();updateLegend();draw();
@@ -189,10 +262,17 @@ function initialize(){
  $("zoom-in").onclick=()=>zoom(1.3);$("zoom-out").onclick=()=>zoom(1/1.3);
  $("zoom-reset").onclick=()=>{state.zoom=1;state.panX=state.panY=0;draw();};
  canvas.addEventListener("wheel",e=>{e.preventDefault();zoom(e.deltaY<0?1.12:1/1.12);},{passive:false});
+ canvas.addEventListener('pointerleave',()=>{$('map-hover-card').hidden=true;blockView.hover(null);});
  let drag=null;
  canvas.addEventListener("pointerdown",e=>{drag={x:e.clientX,y:e.clientY,px:state.panX,py:state.panY};canvas.setPointerCapture(e.pointerId);});
  canvas.addEventListener("pointermove",e=>{if(drag){state.panX=drag.px+e.clientX-drag.x;state.panY=drag.py+e.clientY-drag.y;draw();}inspect(e);});
- const endDrag=()=>{drag=null;};canvas.addEventListener("pointerup",endDrag);canvas.addEventListener("pointercancel",endDrag);
+ canvas.addEventListener("pointerup",e=>{
+   const click=drag&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<5;drag=null;
+   if(click&&state.view==="blocks"&&transform){
+     const rect=canvas.getBoundingClientRect(),block=blockView.hit((e.clientX-rect.left-transform.x)/transform.scale,(e.clientY-rect.top-transform.y)/transform.scale);
+     blockView.select(block?block.id:null);inspect(e);
+   }
+ });canvas.addEventListener("pointercancel",()=>{drag=null;});
  canvas.addEventListener("keydown",e=>{
    if(["+","=","-","0","ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(e.key))e.preventDefault();
    if(e.key==="+"||e.key==="=")zoom(1.2);if(e.key==="-")zoom(1/1.2);
@@ -206,21 +286,46 @@ function initialize(){
  $("download-map").onclick=()=>{
    const out=document.createElement("canvas");out.width=canvas.width;out.height=canvas.height+130;
    const c=out.getContext("2d");c.fillStyle="#fff";c.fillRect(0,0,out.width,out.height);c.drawImage(canvas,0,70);
-   c.fillStyle="#161616";c.font="18px sans-serif";c.fillText(data.title+" · "+descriptions[state.layer][0],20,27);
-   c.font="12px sans-serif";c.fillText((data.synthetic?"模拟数据 · 非观测 | ":"本地真实成果 · 研究性空间筛查 | ")+"热权重 "+state.heatWeight.toFixed(2)+" / 阈值 "+state.threshold.toFixed(2),20,51);
+   const mapTitle=feedbackView.active?$("layer-title").textContent:state.view==="blocks"?blockView.description(state.layer)[0]+(state.blockScale==="overview"?"（片区）":"（街区）"):descriptions[state.layer][0];
+   c.fillStyle="#161616";c.font="18px sans-serif";c.fillText(data.title+" / "+mapTitle,20,27);
+   const rendered=feedbackView.comparing?feedbackView.beforeSettings:state;
+   c.font="12px sans-serif";c.fillText((feedbackView.comparing?"上一步参数 / ":"")+(data.synthetic?"模拟数据 · 非观测 | ":"本地真实成果 · 研究性空间筛查 | ")+"热权重 "+rendered.heatWeight.toFixed(2)+" / 阈值 "+rendered.threshold.toFixed(2),20,51);
    c.fillText("N ↑",out.width-48,27);
    const legendY=canvas.height+91;
    c.font="11px sans-serif";
-   if(state.layer==="zones"||state.layer==="expansion"){
+   if(feedbackView.active){c.fillStyle='#161616';c.fillText('相较上一步：橙色增加 / 青色减少；'+(feedbackView.kind==='weight'?'复合分数差':'双高判定差'),20,legendY);}
+   else if(state.view!=="blocks"&&(state.layer==="zones"||state.layer==="expansion")){
      const labels=state.layer==="zones"?["低热低涝","高温优先","水涝优先","热涝双高"]:["双高区","单项高值","未达高值"];
      const colors=state.layer==="zones"?zoneColors:["#80579b","#e39b78","#9fbc89"];
      labels.forEach((label,i)=>{c.fillStyle=colors[i];c.fillRect(20+i*110,legendY-9,9,9);c.fillStyle="#161616";c.fillText(label,35+i*110,legendY);});
    }else{
-     c.fillStyle="#161616";c.fillText("相对分数：0 低 → 1 高；色阶与页面当前图层一致",20,legendY);
+     c.fillStyle="#161616";c.fillText((state.view==="blocks"?"街区均值或比例":"相对分数")+"：0 低 → 1 高；色阶与页面当前图层一致",20,legendY);
    }
-   c.fillStyle="#525252";c.fillText("研究性空间筛查 / 浏览器参数探索",20,legendY+22);
-   out.toBlob(blob=>{if(blob)download(data.id+"-"+state.layer+".png",blob,"image/png");});
+   const reference=feedbackView.active?"对比基准：热权重 "+feedbackView.beforeSettings.heatWeight.toFixed(2)+" / 阈值 "+feedbackView.beforeSettings.threshold.toFixed(2):"研究性空间筛查 / 浏览器参数探索";
+   c.fillStyle="#525252";c.fillText(reference,20,legendY+22);
+   out.toBlob(blob=>{if(blob)download(data.id+"-"+state.view+"-"+state.layer+".png",blob,"image/png");});
  };
+}
+function syncViewButtons(){
+ for(const view of ["blocks","raster"]){const button=$("view-"+view);button.setAttribute("aria-pressed",String(state.view===view));}
+ $("block-detail-link").hidden=!data.blocks;
+}
+function setView(view){
+ if(view==="blocks"&&!data.blocks)return;
+ state.view=view;syncViewButtons();updateLegend();draw();
+}
+function locateBlock(block){
+ if(!transform||!block.bounds)return;
+ const [left,top,right,bottom]=block.bounds,{W,H}=transform;
+ const base=Math.min((W-70)/data.width,(H-75)/data.height);
+ state.zoom=Math.max(.6,Math.min(8,Math.min((W-90)/Math.max(right-left,1),(H-100)/Math.max(bottom-top,1))/base));
+ const scale=base*state.zoom;
+ state.panX=(data.width/2-(left+right)/2)*scale;state.panY=(data.height/2-(top+bottom)/2)*scale+5;
+ draw();
+ $("pixel-inspector").textContent=block.name+" / "+block.valid_pixels+" 个有效像元 / 已定位，详情见下方分区面板";
+ $("explorer").scrollIntoView({behavior:"smooth",block:"start"});
 }
 try{initialize();}catch(error){$("error-message").hidden=false;$("error-message").textContent="页面加载失败："+error.message;console.error(error);}
 })();
+
+document.getElementById("focus-toggle").addEventListener("click",function(){const active=document.body.classList.toggle("focus-map");this.textContent=active?"显示分析面板":"纯净地图";window.dispatchEvent(new Event("resize"));});

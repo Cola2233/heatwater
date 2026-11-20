@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Heatwater | Landsat surface temperature</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f1eee6;color:#232f2b;font:15px/1.6 "Segoe UI","Microsoft YaHei",sans-serif}header,main,footer{max-width:1250px;margin:auto;padding:24px clamp(16px,4vw,44px)}header{border-bottom:1px solid #cbc5b7}header p,h1,h2,figure{margin:0}h1{font:600 clamp(30px,5vw,48px)/1.15 Georgia,"Microsoft YaHei",serif;margin-top:6px}h2{font-size:19px}.eyebrow{font-size:12px;letter-spacing:.12em;color:#8c3f28;font-weight:700}.en{color:#4d5650}main{display:grid;grid-template-columns:minmax(0,1fr) minmax(265px,330px);gap:28px}canvas{background:#202e2c;width:100%;height:auto;display:block;cursor:crosshair;border:1px solid #202e2c}.legend{margin:12px 0}.gradient{height:10px;background:linear-gradient(90deg,#2f608a,#84b8c2,#f1ddab,#df894f,#9b3329)}.ticks{display:flex;justify-content:space-between;font-size:13px}.card{background:#fbf9f3;padding:18px;border:1px solid #cbc5b7;margin-bottom:14px}label,select{display:block}select,button{font:inherit;padding:8px 10px;border:1px solid #a49b89;background:#fffdf8;color:inherit}select{width:100%;margin:6px 0 12px}button{cursor:pointer;margin-top:8px}button:focus-visible,select:focus-visible,canvas:focus-visible{outline:3px solid #9b3329;outline-offset:3px}dl{display:grid;grid-template-columns:1fr auto;gap:5px;margin:10px 0}dd{margin:0;font-variant-numeric:tabular-nums;font-weight:600}figcaption,footer{font-size:13px;color:#4d5650}a{color:#8c3f28}@media(max-width:730px){main{grid-template-columns:1fr;gap:14px}}
+</style>
+</head>
+<body>
+<header>
+<p class="eyebrow">HEATWATER · LANDSAT CASE STUDY</p>
+<h1 id="city-title">中心城区 · 地表温度</h1>
+<p class="en" id="city-subtitle">Landsat surface temperature</p>
+</header>
+<main>
+<figure>
+<canvas id="map" tabindex="0" aria-label="温度地图。点击网格或用方向键选择统计单元"></canvas>
+<div class="legend"><div class="gradient"></div><div class="ticks"><span>30 °C</span><span>42.5 °C</span><span>55 °C</span></div></div>
+<figcaption>上北下南。各案例共用同一显示温标。点击网格查看统计，灰白像元为掩膜。<br>North up. Click a grid cell for statistics.</figcaption>
+</figure>
+<aside>
+<div class="card"><label for="scene">观测日期 / Observation date</label><select id="scene"></select><div id="coverage"></div></div>
+<div class="card"><h2 id="zone">统计网格</h2><p id="stats" aria-live="polite"></p><button id="export">导出全部网格 CSV / Export CSV</button></div>
+<div class="card"><span id="sample-note"></span><br><span class="en">Regular analysis cells and quality-screened, single-date surface temperatures.</span></div>
+</aside>
+</main>
+<footer>Source: USGS Landsat Collection 2 Level-2 Surface Temperature. <a href="https://www.usgs.gov/landsat-missions/landsat-collection-2-surface-temperature">Product information</a> · <span id="grid-description"></span></footer>
+<script>
+const payload = /* DATA */;
+const {width,height,cellSize,scenes} = payload;
+document.title = 'Heatwater | '+payload.titleEn+' surface temperature';
+document.querySelector('#city-title').textContent = payload.title+'中心城区 · 地表温度';
+document.querySelector('#city-subtitle').textContent = payload.titleEn+' surface temperature · Landsat';
+document.querySelector('#grid-description').textContent = 'EPSG:'+payload.epsg+' · '+payload.titleEn+' central sample';
+document.querySelector('#sample-note').textContent = '每个统计单元来自 4×4 规则网格。温度经质量波段筛选并对齐至 '+payload.resolution+' 米采样网格。各景温度受观测当天的天气影响。';
+const map = document.querySelector('#map');
+map.width = width * 2;
+map.height = height * 2;
+const context = map.getContext('2d');
+const sceneSelect = document.querySelector('#scene');
+const palette = [[47,96,138],[132,184,194],[241,221,171],[223,137,79],[155,51,41]];
+const xEdges = Array.from({length:cellSize+1},(_,i)=>Math.floor(i*width/cellSize));
+const yEdges = Array.from({length:cellSize+1},(_,i)=>Math.floor(i*height/cellSize));
+const rasters = scenes.map(scene=>{
+  const bytes = Uint8Array.from(atob(scene.values),c=>c.charCodeAt(0));
+  const view = new DataView(bytes.buffer);
+  return Int16Array.from({length:width*height},(_,i)=>view.getInt16(i*2,true));
+});
+let row=1,column=1;
+function date(id){
+  const d=id.split('_')[3];
+  return d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8);
+}
+for (const [index,scene] of scenes.entries()){
+  const option=new Option(date(scene.id)+' · Landsat '+scene.id[3],index);
+  sceneSelect.add(option);
+}
+function summary(values,r,c){
+  let n=0,min=Infinity,max=-Infinity,sum=0;
+  for(let y=yEdges[r];y<yEdges[r+1];y++){
+    for(let x=xEdges[c];x<xEdges[c+1];x++){
+      const value=values[y*width+x];
+      if(value===-32768)continue;
+      n++;sum+=value;min=Math.min(min,value);max=Math.max(max,value);
+    }
+  }
+  return {n,mean:n?(sum/n/100).toFixed(2):'',min:n?(min/100).toFixed(2):'',max:n?(max/100).toFixed(2):''};
+}
+function color(value){
+  if(value===-32768)return [222,222,216];
+  const t=Math.max(0,Math.min(4,(value/100-30)/25*4));
+  const i=Math.min(3,Math.floor(t));
+  return palette[i].map((v,j)=>Math.round(v+(palette[i+1][j]-v)*(t-i)));
+}
+function draw(){
+  const index=Number(sceneSelect.value), values=rasters[index];
+  const buffer=document.createElement('canvas');buffer.width=width;buffer.height=height;
+  const source=buffer.getContext('2d'),image=source.createImageData(width,height);
+  values.forEach((value,i)=>{
+    const rgb=color(value);
+    image.data.set([...rgb,255],i*4);
+  });
+  source.putImageData(image,0,0);
+  context.imageSmoothingEnabled=false;
+  context.drawImage(buffer,0,0,map.width,map.height);
+  context.lineWidth=1;context.strokeStyle='#17272688';
+  for(let r=0;r<cellSize;r++){
+    for(let c=0;c<cellSize;c++){
+      context.strokeRect(xEdges[c]*2,yEdges[r]*2,(xEdges[c+1]-xEdges[c])*2,(yEdges[r+1]-yEdges[r])*2);
+    }
+  }
+  context.lineWidth=4;context.strokeStyle='#fff7dd';
+  context.strokeRect(xEdges[column]*2,yEdges[row]*2,(xEdges[column+1]-xEdges[column])*2,(yEdges[row+1]-yEdges[row])*2);
+  const s=summary(values,row,column);
+  document.querySelector('#coverage').textContent='有效覆盖 / Valid coverage '+(scenes[index].coverage*100).toFixed(2)+'%';
+  document.querySelector('#zone').textContent='网格 / Cell '+(row*cellSize+column+1);
+  document.querySelector('#stats').textContent=s.n?('平均 / Mean '+s.mean+' °C · 有效像元 '+s.n+' · 范围 '+s.min+'–'+s.max+' °C'):'该网格没有有效温度像元';
+}
+sceneSelect.onchange=draw;
+map.onclick=event=>{
+  const bounds=map.getBoundingClientRect();
+  const x=(event.clientX-bounds.left)*width/bounds.width;
+  const y=(event.clientY-bounds.top)*height/bounds.height;
+  column=xEdges.slice(1).findIndex(edge=>x<edge);
+  row=yEdges.slice(1).findIndex(edge=>y<edge);
+  row=Math.max(0,row);column=Math.max(0,column);draw();
+};
+map.onkeydown=event=>{
+  const moves={ArrowUp:[-1,0],ArrowDown:[1,0],ArrowLeft:[0,-1],ArrowRight:[0,1]};
+  if(!moves[event.key])return;
+  event.preventDefault();
+  const [dr,dc]=moves[event.key];
+  row=Math.min(cellSize-1,Math.max(0,row+dr));column=Math.min(cellSize-1,Math.max(0,column+dc));draw();
+};
+document.querySelector('#export').onclick=()=>{
+  const lines=['date,scene_id,cell_id,valid_pixels,mean_c,min_c,max_c'];
+  for(const [i,scene] of scenes.entries()){
+    for(let r=0;r<cellSize;r++){
+      for(let c=0;c<cellSize;c++){
+        const s=summary(rasters[i],r,c);
+        lines.push([date(scene.id),scene.id,r*cellSize+c+1,s.n,s.mean,s.min,s.max].join(','));
+      }
+    }
+  }
+  const url=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8'}));
+  const a=document.createElement('a');a.href=url;a.download=payload.slug+'-temperature-cells.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+draw();
+</script>
+</body>
+</html>

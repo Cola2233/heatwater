@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,12 +8,13 @@ version = "0.1.0"
 description = "Reproducible heat-water screening and building-function exposure"
 readme = "README.md"
 requires-python = ">=3.11"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{name = "Rin"}]
 dependencies = ["numpy>=1.24,<3"]
 
 [project.optional-dependencies]
-geo = ["matplotlib>=3.7,<4"]
+geo = ["matplotlib>=3.7,<4", "shapely>=2,<3"]
 documents = ["python-docx>=1.1,<2"]
 dev = ["pytest>=8,<9", "build>=1,<2"]
 
@@ -21,6 +22,9 @@ dev = ["pytest>=8,<9", "build>=1,<2"]
 heatwater = "heatwater.run_pipeline:main"
 heatwater-demo = "heatwater.synthetic_case:main"
 heatwater-validate = "heatwater.validate_outputs:main"
+heatwater-web-export = "heatwater.export_web_data:main"
+heatwater-bundle = "heatwater.build_single_html:main"
+heatwater-blocks = "heatwater.blocks:main"
 
 [tool.setuptools]
 packages = ["heatwater"]

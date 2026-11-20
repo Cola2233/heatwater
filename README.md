@@ -1,35 +1,47 @@
-# 热水共治 · Changchun Heat-Water Resilience
+# 热水共治 · Heatwater
 
-用遥感栅格与建筑功能数据，识别城市热—涝复合空间筛查优先区。
-本项目提供可复现的处理链、参数敏感性分析和数据完整性校验。
+Heatwater 是一个基于遥感的城市片区筛查项目。它把地表热环境、水涝代理和建筑功能暴露放在同一张地图上，帮助研究者判断哪些片区值得优先核查，以及这个判断对权重和阈值有多敏感。
 
-**版本：0.1.0，本地发布候选。** 长春真实数据成果保留在本地；
-公开示例为可自动生成的模拟数据。水涝指数是研究性代理指标。
+**Heatwater is a reproducible remote-sensing workflow for screening urban heat, waterlogging proxies, and building-use exposure.** It connects raster processing, road-based spatial units, and interactive sensitivity analysis in an offline map.
 
-![Synthetic workflow preview](docs/assets/synthetic_dashboard.png)
+| 案例 | 可以看到什么 |
+|---|---|
+| [长春四环研究案例](cases/changchun/README.md) | 51 个主干路片区和 30 米采样网格，支持片区解释、72 组权重与阈值的敏感性分析、核查清单导出。真实数据在本地运行。 |
+| [北京真实温度样例](cases/beijing/README.md) | 两景公开 Landsat 地表温度，经过质量掩膜和网格对齐。可切换日期、点击 16 个统计格和导出 CSV。 |
+| 公开模拟体验 | 9 个模拟片区，可离线走完选区、调参、检查入选频率和导出清单。[图文教程与视频说明](docs/quickstart-zh.md) |
 
-上图为模拟案例，不代表长春观测结果。
+从[城市案例目录](cases/README.md)查看各城市的进度、方法和附件。每个案例有独立入口，可以随数据和分析进度更新。
 
-## 回答什么问题
+![北京公开 Landsat 温度样例，右侧显示所选网格的统计](docs/assets/beijing-temperature.png)
 
-- 哪些位置在两个夏季合成窗口中具有较高的相对地表热分数？
-- 热、水涝代理分别偏高或同时偏高的位置在哪里？
-- 新增不透水面与居住、教育、医疗、公共服务建筑如何影响核查排序？
+**体验入口**。在 [v0.1.0 发布页](https://github.com/Cola2233/heatwater/releases/tag/v0.1.0) 下载 `heatwater-quickstart-zh.zip`。解压后用 Edge 或 Chrome 打开 `heatwater-research-demo.html`，包内还有图文教程和 70 秒中文字幕演示。各城市案例页列出可下载的真实温度样例。代码与模拟数据采用 MIT 许可。
 
-## 快速开始
+项目包含遥感栅格处理、道路分区、片区汇总、筛查条件解释及交互导出。地图展示使用 MapLibre，分区方法借鉴 Laisen-geo。[方法与适用范围](docs/methods.md) · [开源组件用法](docs/open-source-pilot.md) · [八城扩展计划](docs/china-city-cases.md)
 
-交互网页已提供：在浏览器打开 website/index.html 即可离线预览模拟案例。
-它支持六种地图图层、参数调整和结果导出。真实长春成果的本地预览与
-数据导出步骤见 [网页使用说明](website/README.md)。
+## 先试用，再决定是否安装
 
-先运行不需要 GIS 软件的测试：
+| 你想做什么 | 从这里开始 | 需要什么 |
+|---|---|---|
+| 看地图、调整权重和阈值 | 下载仓库，双击 [website/index.html](website/index.html) | 支持 JavaScript 的桌面浏览器 |
+| 分享一个离线演示文件 | 运行下方打包命令，发送生成的 HTML | Python 3.11+，无需 GDAL |
+| 运行栅格处理链 | [完整复现指南](docs/reproducibility.md) | Python、GDAL、NumPy、Matplotlib |
+| 修复问题或贡献功能 | [贡献指南](CONTRIBUTING.md) | 对应 Python 或 Node 开发环境 |
+
+下载仓库ZIP后请先解压；GitHub的源码预览不会直接执行HTML。
+Node/Playwright仅用于开发检查，使用网页不需要npm install。
+
+### 生成可分享的公开演示
+
+从仓库根目录执行：
 
 ```sh
-python -m pip install -e .
-python -m unittest discover -s tests -v
+python -m scripts.build_single_html --output artifacts/releases/heatwater-demo.html
 ```
 
-完整地理处理环境与模拟案例：
+默认仅嵌入公开模拟案例。把生成的HTML发给别人，对方用浏览器打开即可。
+长春真实数据版本需要显式选择本地入口，见 [网页说明](website/README.md)。
+
+### 运行完整模拟工作流
 
 ```sh
 conda env create -f environment.yml
@@ -39,77 +51,76 @@ python -m scripts.run_pipeline --config demo/config.json
 python -m scripts.validate_outputs --config demo/config.json
 ```
 
-也支持已有 QGIS 的 Python 环境。生成器要求 demo/data 为空；
-完整配置、安装后 CLI 和真实数据步骤见 [复现指南](docs/reproducibility.md)。
+生成器要求使用新目录。完整流程输出20项必需成果及校验清单。
+安装包同时提供heatwater-demo、heatwater、heatwater-validate命令；
+GDAL需要单独通过Conda或QGIS环境提供。
 
-## 分析流程
+## 它能做什么
 
-```mermaid
-flowchart LR
-  A[两期夏季 LST] --> C[共同有效区与归一化]
-  B[水涝空间代理] --> C
-  C --> D[复合分数与四类治理分区]
-  E[土地覆盖转换] --> F[扩张治理优先级]
-  D --> F
-  G[建筑功能] --> H[暴露代理与核查优先级]
-  D --> H
-  H --> I[GeoTIFF / CSV / 图件 / 敏感性]
-  F --> I
-```
+- 将两期LST与水涝代理对齐到参考网格，在共同有效区域计算相对分数。
+- 分别判断热、水分量是否偏高，输出四类治理分区与连续复合分数。
+- 叠加新增不透水面及建筑功能，查看候选核查区域。
+- 输出GeoTIFF、CSV、图件、参数敏感性结果与SHA-256清单。
+- 在离线地图中查看原始分析网格，切换图层、探索参数并导出结果。
+- 可选道路围合街区，汇总均值、双高占比与建筑暴露，保留像元不足和边界截断标记。
 
-默认热/涝权重为 0.55/0.45，四类分区的分量阈值为 0.67。
-权重控制连续分数；四类分区由热、水分量各自的阈值决定。
-参数可配置，所有默认值沿用现有分析逻辑。
+默认热/水权重为0.55/0.45，分量和复合高分阈值为0.67。
+改变权重会改变连续复合分数；四类分区由热、水分量各自的阈值决定。
+网页操作不会改写Python成果或原始栅格。
 
-## 项目结构
+## 使用自己的数据
 
-```text
-config/example.json          可移植配置模板
-scripts/                     核心逻辑、GIS处理、制图、校验、模拟数据生成
-tests/                       纯 NumPy 测试与可选 GDAL 集成测试
-data/README.md               输入契约和获取说明
-auxiliary/                   公式与类别编码
-docs/                        方法、架构、复现、数据字典和局限性
-.github/                     自动测试与问题模板
-```
-
-安装后使用 heatwater、heatwater-demo、heatwater-validate 命令。
-源代码包 scripts 在安装时映射为 heatwater；不复制算法代码。
-
-## 使用真实数据
-
-复制 config/example.json 为 config/local.json，填写输入路径与输出目录。
-project_root 相对配置文件解析，输入输出路径相对 project_root 解析。
-完整流程需要早期 LST、近期 LST、转换、水涝代理和建筑功能数据。
-四环案例要求 30 m、EPSG:32651；晚期 LST 与转换必须与早期网格一致。
+复制config/example.json为config/local.json，填写输入路径、单位、建筑字段与输出目录。
+输入契约见 [data/README.md](data/README.md)。当前实现沿用长春案例的30米、EPSG:32651网格约束，
+时间窗口、输出命名和地图文案仍有案例特征，尚不是任意城市的通用适配器。
 
 ```sh
 python -m scripts.run_pipeline --config config/local.json
 ```
 
-每次运行生成十个最终栅格、两张统计表、输入清单、四张图、运行元数据、
-两项敏感性成果及输出校验清单。输出清单记录相对路径、SHA-256 与大小。
-重复运行会替换指定目录中的同名生成文件。
+真实数据及其衍生图表按来源许可管理，不随公开模拟演示分发。
+数据获取状态与许可见 [DATA_LICENSE.md](DATA_LICENSE.md)。
 
-## 科学解释与数据许可
+## 适用范围
 
-长春案例使用两期合成窗口，而非逐年温度序列。LST 是地表温度；
-水涝层未使用独立积水观测进行校准；建筑功能并不等于人口数量。
-因此结果用于候选区域筛查和进一步核查，不提供工程级预测精度。
+本工具用于研究性空间筛查。水涝层是代理指标，尚未用独立积水观测校准；
+LST不等于气温，建筑功能暴露不等于人口。长春的两期夏季合成窗口也不是逐年温度序列。
+目前不提供工程内涝预报或干预效果预测。详见 [方法](docs/methods.md) 与 [解释边界](docs/limitations.md)。
 
-代码和模拟数据采用 [MIT](LICENSE)。第三方数据与真实数据衍生图件
-按各自来源许可管理；[数据许可说明](DATA_LICENSE.md)列明待核验项。
-真实影像、建筑 GPKG、比赛提交包及本机配置均不进入公开仓库。
+## 开发与检查
 
-## 文档与贡献
+```sh
+python -m pip install -e .
+python -m unittest discover -s tests -v
+node --test website/tests/core.test.cjs website/tests/dataset.test.cjs
+```
 
-- [方法与参数](docs/methods.md)
-- [数据字典](docs/data_dictionary.md)
-- [架构](docs/architecture.md)
-- [科学边界](docs/limitations.md)
-- [后续研究](docs/roadmap.md)
-- [发布步骤](docs/publishing.md)
-- [贡献指南](CONTRIBUTING.md)
+没有GDAL时集成测试会跳过，纯算法与打包测试仍能运行。
+可选端到端浏览器检查不依赖真实数据：
 
-软件引用信息见 CITATION.cff；使用真实数据时应另行引用各来源。
-GitHub CI 配置已提供，其线上执行状态以实际仓库运行结果为准。
+```sh
+npm ci
+npx playwright install chromium
+python -m scripts.build_single_html --output artifacts/releases/heatwater-demo.html
+npm run test:browser
+```
+
+设置HEATWATER_PUBLIC_BUNDLE=artifacts/releases/heatwater-demo.html可同时检查单文件。
+环境变量写法、已有Edge的使用方式与贡献流程见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
+## 项目导航
+
+| 位置 | 内容 |
+|---|---|
+| scripts/ | 配置、算法、GIS处理、制图、校验、模拟数据和网页打包 |
+| website/ | 无构建依赖的离线地图、公开模拟栅格及前端测试 |
+| tests/ | Python单元与GDAL集成测试 |
+| config/example.json | 可移植的配置模板 |
+| docs/ | 方法、数据字典、架构、复现与维护文档 |
+| .github/ | CI与问题模板 |
+
+- [架构](docs/architecture.md) / [数据字典](docs/data_dictionary.md) / [路线图](docs/roadmap.md)
+- [版本变更](CHANGELOG.md) / [发布流程](docs/publishing.md) / [贡献指南](CONTRIBUTING.md)
+- [代码许可](LICENSE) / [数据许可](DATA_LICENSE.md) / [引用信息](CITATION.cff)
+
+在线演示地址、GitHub CI结果、正式Release和DOI仅在实际创建后补充。

@@ -14,8 +14,11 @@ inputs are excluded from the public repository:
 | Water-screening index | Existing teaching workflow | Component sources and terms require review |
 | Building functions | Existing SinoBF-1 subset | Upstream terms require review |
 | Context vectors | Existing project GeoPackage | Individual source terms require review |
+| Road-derived blocks | Local road layer with OSM-style identifiers and tags | Source provenance and attribution require review; real block polygons remain local |
 
-Real-data figures, tables and documents remain local. A release containing
-real data or derived figures must record permitted use, attribution, source
-version and license evidence for every upstream input. The public preview
-uses synthetic data only.
+The Changchun research data and derived figures remain local pending source
+review. The public quickstart uses synthetic data. The separate Beijing
+temperature examples under `cases/` use USGS Landsat Collection 2 Level-2 Surface Temperature.
+USGS states that Landsat products have no use restrictions and requests citation.
+The scene identifiers and coverage are listed on each case page in the repository's `cases/` directory.
+QA steps and source citation are in [the temperature sample notes](docs/beijing-temperature-demo.md).

@@ -1,0 +1,23 @@
+{
+  "slug": "tianjin",
+  "title": "天津",
+  "title_en": "Tianjin",
+  "bounds_lonlat": [
+    117.14,
+    39.08,
+    117.25,
+    39.17
+  ],
+  "epsg": 32650,
+  "resolution_grid_m": 30,
+  "scenes": [
+    {
+      "scene": "LC09_L2SP_122033_20230829_02_T1",
+      "file": "LC09_L2SP_122033_20230829_02_T1.tif",
+      "width": 319,
+      "height": 335,
+      "valid_count": 106863,
+      "coverage": 0.9999812847985776
+    }
+  ]
+}

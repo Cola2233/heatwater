@@ -35,6 +35,22 @@ def export(config, website: Path):
               periods=["2013–2015","2021–2023"] if not config.synthetic else ["模拟早期","模拟近期"],
               source_hashes={role:sha256(config.output_dir/name) for role,name in source_names.items()})
     payload=dict(meta=meta,arrays=arrays)
+    scales={}
+    for key,folder in [('overview','blocks_overview'),('detail','blocks')]:
+        blocks_path=config.derived_dir/folder/'blocks_browser.json'
+        if blocks_path.exists():
+            blocks=json.loads(blocks_path.read_text(encoding='utf-8'))
+            diagnostic=blocks['diagnostics']
+            if (diagnostic.get('width')!=meta['width'] or diagnostic.get('height')!=meta['height']
+                    or diagnostic.get('raster_hashes')!=meta['source_hashes']):
+                raise ValueError('Block data is stale or uses a different grid; rerun scripts.blocks --scale '+key)
+            diagnostic.setdefault('scale',key)
+            scales[key]=dict(blocks=blocks,ids=blocks.pop('ids'))
+    if scales:
+        default='overview' if 'overview' in scales else 'detail'
+        primary=scales.pop(default)
+        arrays['block_ids']=primary['ids'];payload['blocks']=primary['blocks']
+        if scales:payload['block_scales']=scales
     filename="demo.js" if config.synthetic else "local.js"
     key="demo" if config.synthetic else "changchun"
     content="window.HEATWATER_DATASETS=window.HEATWATER_DATASETS||{};\n"
