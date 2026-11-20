@@ -4,6 +4,12 @@ Heatwater 是一个基于遥感的城市片区筛查项目。它把地表热环�
 
 **Heatwater is a reproducible remote-sensing workflow for screening urban heat, waterlogging proxies, and building-use exposure.** It connects raster processing, road-based spatial units, and interactive sensitivity analysis in an offline map.
 
+## 项目维护与协助
+
+Rin（[Cola2233](https://github.com/Cola2233)）负责研究选题、数据与方法判断，并维护项目。[OpenAI Codex](https://github.com/codex) 作为 AI 编程助手，协助实现离线地图与城市演示、核对测试、整理文档和打包发布。
+
+## 城市案例
+
 | 案例 | 可以看到什么 |
 |---|---|
 | [长春四环研究案例](cases/changchun/README.md) | 51 个主干路片区和 30 米采样网格，支持片区解释、72 组权重与阈值的敏感性分析、核查清单导出。真实数据在本地运行。 |
@@ -107,10 +113,6 @@ npm run test:browser
 
 设置HEATWATER_PUBLIC_BUNDLE=artifacts/releases/heatwater-demo.html可同时检查单文件。
 环境变量写法、已有Edge的使用方式与贡献流程见 [CONTRIBUTING.md](CONTRIBUTING.md)。
-
-## 项目维护与协助
-
-Rin（[Cola2233](https://github.com/Cola2233)）负责研究选题、数据与方法判断，并维护项目。[OpenAI Codex](https://github.com/codex) 作为 AI 编程助手，协助实现离线地图与城市演示、核对测试、整理文档和打包发布。
 
 ## 项目导航
 
