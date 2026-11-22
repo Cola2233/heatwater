@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.0
+
+- Added reproducible extraction of the seven public Landsat temperature samples from fixed scene manifests.
+- Added paired Beijing summer composites with same-day mosaicking, median temperature, and per-pixel observation support.
+- Applied a common WorldCover 2021 built-up mask within the Beijing central sample and documented its grid, attribution and interpretation.
+- Packaged the offline map, GeoTIFFs, mask and scene manifest together for review and reuse.
+
 ## v0.1.0
 
 - Published the Heatwater core and city case catalogue.

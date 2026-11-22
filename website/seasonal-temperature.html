@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Heatwater | 夏季地表温度</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f0e7;color:#25352e;font:16px/1.65 "Segoe UI","Microsoft YaHei",sans-serif}main{max-width:1200px;margin:auto;padding:28px clamp(16px,4vw,38px)}header{border-bottom:1px solid #ccc5b6;padding-bottom:18px;margin-bottom:20px}header .brand{color:#934726;font-size:12px;font-weight:700;letter-spacing:.12em}h1{font:600 clamp(28px,4vw,44px)/1.2 Georgia,"Microsoft YaHei",serif;margin:8px 0}p{margin:5px 0}.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0}button{font:inherit;border:1px solid #9e9f8b;background:#faf8f2;color:inherit;padding:7px 13px;cursor:pointer}button[aria-pressed=true]{background:#294639;color:#fff}button:focus-visible,canvas:focus-visible{outline:3px solid #934726;outline-offset:3px}.maps{display:grid;grid-template-columns:1fr 1fr;gap:18px}.panel{background:#fffdf7;border:1px solid #d1cabb;padding:14px;margin:0}h2{font-size:20px;margin:0}canvas{display:block;width:100%;height:auto;cursor:crosshair;margin:10px 0;background:#cfc9b9}.support,figcaption,footer{font-size:14px;color:#49574e}.legend{margin:12px 0}.gradient{height:10px}.ticks{display:flex;justify-content:space-between;font-size:13px}.readout{padding:14px 16px;background:#e7e7d8;border-left:3px solid #53715e;margin-top:18px}footer{border-top:1px solid #ccc5b6;margin-top:24px;padding-top:12px}a{color:#934726}@media(max-width:680px){.maps{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<header><span class="brand">HEATWATER · LANDSAT</span><h1 id="title"></h1><p id="method"></p></header>
+<div class="toolbar" role="group" aria-label="显示指标">
+<button id="temp" aria-pressed="true">地表温度</button><button id="counts" aria-pressed="false">有效观测次数</button>
+<span id="shared" class="support"></span>
+</div>
+<div class="maps" id="maps"></div>
+<div class="legend"><div class="gradient" id="gradient"></div><div class="ticks" id="ticks"></div></div>
+<p class="support" id="legend-note"></p>
+<section class="readout" aria-live="polite"><h2 id="pixel-title">点选地图查看同一像元</h2><p id="pixel-values">也可以用方向键移动选点。</p></section>
+<footer><span id="grid"></span>每期合成受晴空样本分布影响。来源为 <a href="https://www.usgs.gov/landsat-missions/landsat-collection-2-surface-temperature">USGS Landsat Collection 2 Level-2</a>。<span id="attribution" hidden>掩膜依据 <a href="https://doi.org/10.5281/zenodo.7254221">ESA WorldCover 2021 v200</a>，© ESA WorldCover project 2021 / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium.</span></footer>
+</main>
+<script>
+const data = /* DATA */;
+const $ = id => document.getElementById(id);
+const {width,height,minimum} = data;
+const temperatureColors = [[47,96,138],[132,184,194],[241,221,171],[223,137,79],[155,51,41]];
+const countColors = [[250,245,226],[178,200,162],[41,85,77]];
+let mode = 'temp', selection = null;
+function decode(encoded, signed){
+  const bytes = Uint8Array.from(atob(encoded), c=>c.charCodeAt(0));
+  const view = new DataView(bytes.buffer);
+  return Array.from({length:width*height}, (_,i)=>signed?view.getInt16(i*2,true):view.getUint16(i*2,true));
+}
+const layers = data.layers.map(layer=>{
+  const panel=document.createElement('figure');panel.className='panel';
+  const title=document.createElement('h2');title.textContent=layer.label;
+  const support=document.createElement('figcaption');
+  support.textContent=layer.summary.days.length+' 个有效观测日 · ≥'+minimum+' 日覆盖 '+(100*layer.summary.support_fraction).toFixed(1)+'%';
+  const canvas=document.createElement('canvas');
+  canvas.width=width;canvas.height=height;canvas.tabIndex=0;
+  canvas.setAttribute('aria-label',layer.label+'地图，单击或使用方向键选点');
+  panel.append(title,support,canvas);$('maps').append(panel);
+  canvas.onclick=e=>{
+    const b=canvas.getBoundingClientRect();
+    selection=[Math.min(width-1,Math.max(0,Math.floor((e.clientX-b.left)*width/b.width))),
+               Math.min(height-1,Math.max(0,Math.floor((e.clientY-b.top)*height/b.height)))];
+    render();
+  };
+  canvas.onkeydown=e=>{
+    const delta={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];
+    if(!delta)return;
+    e.preventDefault();
+    const [x,y]=selection||[Math.floor(width/2),Math.floor(height/2)];
+    selection=[Math.max(0,Math.min(width-1,x+delta[0])),Math.max(0,Math.min(height-1,y+delta[1]))];
+    render();
+  };
+  return {...layer,canvas,temp:decode(layer.temperature,true),count:decode(layer.counts,false)};
+});
+const maxCount=Math.max(...layers.map(l=>l.summary.days.length));
+function color(value,lo,hi,palette){
+  const t=Math.max(0,Math.min(1,(value-lo)/(hi-lo)))*(palette.length-1);
+  const i=Math.min(palette.length-2,Math.floor(t));
+  return palette[i].map((component,c)=>Math.round(component+(palette[i+1][c]-component)*(t-i)));
+}
+function render(){
+  const isTemp=mode==='temp',palette=isTemp?temperatureColors:countColors;
+  const lo=isTemp?25:0,hi=isTemp?50:maxCount;
+  for(const layer of layers){
+    const c=layer.canvas.getContext('2d'),image=c.createImageData(width,height);
+    const values=isTemp?layer.temp:layer.count;
+    for(let i=0;i<values.length;i++){
+      const v=values[i];
+      const rgb=layer.count[i]===65535?[229,225,217]:isTemp&&v===-32768?[165,164,153]:color(isTemp?v/100:v,lo,hi,palette);
+      image.data.set([...rgb,255],i*4);
+    }
+    c.putImageData(image,0,0);
+    if(selection){
+      const [x,y]=selection;
+      c.strokeStyle='#163028';c.lineWidth=3;c.strokeRect(x-3,y-3,7,7);
+      c.strokeStyle='#fff';c.lineWidth=1;c.strokeRect(x-3,y-3,7,7);
+    }
+  }
+  $('gradient').style.background='linear-gradient(90deg,'+palette.map(rgb=>'rgb('+rgb.join(',')+')').join(',')+')';
+  $('ticks').replaceChildren(...[lo,...(isTemp?[37.5]:[]),hi].map(n=>{const s=document.createElement('span');s.textContent=n+(isTemp?' °C':' 日');return s;}));
+  $('legend-note').textContent=(data.built_up_mask?'浅灰表示建成地表掩膜外。':'')+(isTemp?'两图共用温标，显示范围外用端点颜色。深灰表示有效观测少于 '+minimum+' 日。':'颜色表示通过质量掩膜的不同观测日数，同一天的相邻影像行只计一次。');
+  $('temp').setAttribute('aria-pressed',String(isTemp));
+  $('counts').setAttribute('aria-pressed',String(!isTemp));
+  if(selection){
+    const [x,y]=selection,i=y*width+x;
+    $('pixel-title').textContent='同一像元 · 第 '+(y+1)+' 行 / 第 '+(x+1)+' 列';
+    $('pixel-values').textContent=layers[0].count[i]===65535?'该像元在建成地表掩膜外。':layers.map(l=>l.label+' '+(l.temp[i]===-32768?'温度未估计':(l.temp[i]/100).toFixed(2)+' °C')+'，有效 '+l.count[i]+' 日').join(' ｜ ');
+  }
+}
+$('title').textContent=data.city+' · 两期夏季地表温度';
+$('method').textContent=data.domain+'。按观测日合成，以至少 '+minimum+' 个有效日期的像元中位数表示该时期的晴空地表温度。';
+$('shared').textContent='两期共同达到门槛 '+(100*data.shared).toFixed(1)+'%';
+$('grid').textContent='同一研究范围，'+data.resolution+' 米采样网格。';
+$('attribution').hidden=!data.built_up_mask;
+$('temp').onclick=()=>{mode='temp';render();};
+$('counts').onclick=()=>{mode='counts';render();};
+render();
+</script>
+</body>
+</html>

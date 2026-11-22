@@ -22,3 +22,8 @@ temperature examples under `cases/` use USGS Landsat Collection 2 Level-2 Surfac
 USGS states that Landsat products have no use restrictions and requests citation.
 The scene identifiers and coverage are listed on each case page in the repository's `cases/` directory.
 QA steps and source citation are in [the temperature sample notes](docs/beijing-temperature-demo.md).
+
+The Beijing v0.2.0 built-up mask is derived from ESA WorldCover 2021 v200
+(CC BY 4.0). © ESA WorldCover project 2021 / Contains modified Copernicus
+Sentinel data (2021) processed by ESA WorldCover consortium.
+[Source dataset and citation](https://doi.org/10.5281/zenodo.7254221).

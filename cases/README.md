@@ -13,7 +13,7 @@
 | [香港中心样区](hong-kong/README.md) | 1 景 Landsat 地表温度，16 个统计格 | [离线 HTML](https://github.com/Cola2233/heatwater/releases/download/v0.1.0/heatwater-hong-kong-temperature.html) |
 | [台北中心样区](taipei/README.md) | 1 景 Landsat 地表温度，16 个统计格 | [离线 HTML](https://github.com/Cola2233/heatwater/releases/download/v0.1.0/heatwater-taipei-temperature.html) |
 
-想体验完整交互流程，可以从[模拟案例教程](../docs/quickstart-zh.md)开始。[其余城市的准备计划](../docs/china-city-cases.md)
+想体验完整交互流程，可以从[模拟案例教程](../docs/quickstart-zh.md)开始。已发布的七城温度图支持[从公开场景重建](../docs/rebuild-temperature-case.md)。[八城后续计划](../docs/china-city-cases.md)
 
 ## 添加或更新城市
 

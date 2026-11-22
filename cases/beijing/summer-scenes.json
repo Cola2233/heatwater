@@ -1,0 +1,190 @@
+{
+  "slug": "beijing",
+  "title": "北京",
+  "title_en": "Beijing",
+  "bounds_lonlat": [
+    116.34,
+    39.87,
+    116.48,
+    39.97
+  ],
+  "epsg": 32650,
+  "resolution_grid_m": 30,
+  "min_observations": 3,
+  "selection_rule": "June–August. Per year-month, select the lowest catalogue cloud fraction among Landsat 8/9 L2SP Tier 1 scenes with scene cloud <=65% and footprint overlap >=95%. Exclude a selected scene only if every AOI pixel is invalid.",
+  "periods": [
+    {
+      "id": "early",
+      "label": "2013–2015 年夏季",
+      "years": [
+        2013,
+        2015
+      ],
+      "scenes": [
+        {
+          "scene": "LC08_L2SP_123032_20130613_02_T1",
+          "date": "2013-06-13",
+          "cloud": 10.26,
+          "footprint_fraction": 1.0,
+          "valid_count": 149757,
+          "width": 402,
+          "height": 373
+        },
+        {
+          "scene": "LC08_L2SP_123032_20130731_02_T1",
+          "date": "2013-07-31",
+          "cloud": 2.79,
+          "footprint_fraction": 1.0,
+          "valid_count": 149592,
+          "width": 402,
+          "height": 373
+        },
+        {
+          "scene": "LC08_L2SP_123032_20140718_02_T1",
+          "date": "2014-07-18",
+          "cloud": 43.16,
+          "footprint_fraction": 1.0,
+          "valid_count": 86512,
+          "width": 402,
+          "height": 373
+        },
+        {
+          "scene": "LC08_L2SP_123032_20140819_02_T1",
+          "date": "2014-08-19",
+          "cloud": 1.34,
+          "footprint_fraction": 1.0,
+          "valid_count": 149751,
+          "width": 402,
+          "height": 373
+        },
+        {
+          "scene": "LC08_L2SP_123032_20150603_02_T1",
+          "date": "2015-06-03",
+          "cloud": 60.91,
+          "footprint_fraction": 1.0,
+          "valid_count": 37879,
+          "width": 402,
+          "height": 373
+        },
+        {
+          "scene": "LC08_L2SP_123032_20150705_02_T1",
+          "date": "2015-07-05",
+          "cloud": 17.39,
+          "footprint_fraction": 1.0,
+          "valid_count": 149575,
+          "width": 402,
+          "height": 373
+        },
+        {
+          "scene": "LC08_L2SP_123032_20150822_02_T1",
+          "date": "2015-08-22",
+          "cloud": 33.41,
+          "footprint_fraction": 1.0,
+          "valid_count": 149779,
+          "width": 402,
+          "height": 373
+        }
+      ]
+    },
+    {
+      "id": "late",
+      "label": "2021–2023 年夏季",
+      "years": [
+        2021,
+        2023
+      ],
+      "scenes": [
+        {
+          "scene": "LC08_L2SP_123032_20210619_02_T1",
+          "date": "2021-06-19",
+          "cloud": 0.14,
+          "footprint_fraction": 1.0,
+          "valid_count": 149710,
+          "width": 402,
+          "height": 373
+        },
+        {
+          "scene": "LC08_L2SP_123032_20210705_02_T1",
+          "date": "2021-07-05",
+          "cloud": 62.47,
+          "footprint_fraction": 1.0,
+          "valid_count": 18121,
+          "width": 402,
+          "height": 373
+        },
+        {
+          "scene": "LC08_L2SP_123032_20210806_02_T1",
+          "date": "2021-08-06",
+          "cloud": 3.06,
+          "footprint_fraction": 1.0,
+          "valid_count": 149776,
+          "width": 402,
+          "height": 373
+        },
+        {
+          "scene": "LC09_L2SP_123032_20220630_02_T1",
+          "date": "2022-06-30",
+          "cloud": 56.9,
+          "footprint_fraction": 1.0,
+          "valid_count": 17310,
+          "width": 402,
+          "height": 373
+        },
+        {
+          "scene": "LC08_L2SP_123032_20220708_02_T1",
+          "date": "2022-07-08",
+          "cloud": 40.28,
+          "footprint_fraction": 1.0,
+          "valid_count": 149793,
+          "width": 402,
+          "height": 373
+        },
+        {
+          "scene": "LC09_L2SP_123032_20220801_02_T1",
+          "date": "2022-08-01",
+          "cloud": 16.97,
+          "footprint_fraction": 1.0,
+          "valid_count": 36928,
+          "width": 402,
+          "height": 373
+        },
+        {
+          "scene": "LC08_L2SP_123032_20230609_02_T1",
+          "date": "2023-06-09",
+          "cloud": 18.78,
+          "footprint_fraction": 1.0,
+          "valid_count": 149703,
+          "width": 402,
+          "height": 373
+        },
+        {
+          "scene": "LC09_L2SP_123032_20230719_02_T1",
+          "date": "2023-07-19",
+          "cloud": 0.36,
+          "footprint_fraction": 1.0,
+          "valid_count": 149785,
+          "width": 402,
+          "height": 373
+        },
+        {
+          "scene": "LC09_L2SP_123032_20230820_02_T1",
+          "date": "2023-08-20",
+          "cloud": 22.29,
+          "footprint_fraction": 1.0,
+          "valid_count": 8234,
+          "width": 402,
+          "height": 373
+        }
+      ]
+    }
+  ],
+  "rejected_scenes": [
+    {
+      "scene": "LC08_L2SP_123032_20140616_02_T1",
+      "date": "2014-06-16",
+      "cloud": 50.12,
+      "footprint_fraction": 1.0,
+      "reason": "zero valid AOI pixels after QA"
+    }
+  ]
+}

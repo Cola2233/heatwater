@@ -1,0 +1,22 @@
+{
+  "slug": "beijing",
+  "title": "北京",
+  "title_en": "Beijing",
+  "bounds_lonlat": [116.34, 39.87, 116.48, 39.97],
+  "epsg": 32650,
+  "resolution_grid_m": 30,
+  "scenes": [
+    {
+      "scene": "LC08_L2SP_123032_20140819_02_T1",
+      "width": 402,
+      "height": 373,
+      "valid_count": 149751
+    },
+    {
+      "scene": "LC09_L2SP_123032_20230719_02_T1",
+      "width": 402,
+      "height": 373,
+      "valid_count": 149785
+    }
+  ]
+}

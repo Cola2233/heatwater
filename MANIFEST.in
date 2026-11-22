@@ -5,6 +5,7 @@ include package.json package-lock.json DESIGN.md direction-approved.md SECURITY.
 include website/index.html website/style.css website/core.js website/charts.js website/app.js
 include website/README.md website/data/demo.js
 include website/temperature-demo.html
+include website/seasonal-temperature.html
 include website/blocks.css website/blocks.js website/blocks-core.js
 include website/feedback-core.js website/map-feedback.js website/map-feedback.css
 include website/stability-core.js

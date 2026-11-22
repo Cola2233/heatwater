@@ -14,3 +14,15 @@
 ![北京地表温度图和所选网格统计](../../docs/assets/beijing-temperature.png)
 
 完整场景编号、质量掩膜、USGS 署名和构建命令见[北京样例方法](../../docs/beijing-temperature-demo.md)。
+
+[北京场景清单](scenes.json) · [从公开影像重建该案例](../../docs/rebuild-temperature-case.md)
+
+## 两期夏季合成
+
+v0.2.0 增加 2013–2015 年和 2021–2023 年的并排地表温度合成。分析范围限定在中心城区样区内的 2021 年建成地表。两期分别使用 7 和 9 个有效观测日，建成地表中 99.91% 的像元在两期都达到至少 3 个观测日。
+
+![北京中心样区两期夏季地表温度对照，共用温标并同步选点](../../docs/assets/beijing-summer-built-up.png)
+
+图中浅灰为 2021 年建成地表掩膜外区域。左右两图使用同一温标，选框标记同一像元。
+
+[下载离线对照地图](https://github.com/Cola2233/heatwater/releases/download/v0.2.0/beijing-summer-temperature.html) · [下载 GeoTIFF、掩膜和清单](https://github.com/Cola2233/heatwater/releases/download/v0.2.0/beijing-summer-results.zip) · [合成方法与复算命令](../../docs/beijing-summer-composite.md)
